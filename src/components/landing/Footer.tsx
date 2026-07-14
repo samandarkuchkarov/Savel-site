@@ -67,13 +67,13 @@ export default function Footer() {
         <div style={{ flex: "1 1 150px" }}>
           <div style={colTitle}>Поддержка</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 14 }}>
-            <a className="footerLink" href="mailto:support@savel.love" style={linkStyle}>
-              support@savel.love
+            <a className="footerLink" href="mailto:support@savel.uz" style={linkStyle}>
+              support@savel.uz
             </a>
-            <a className="footerLink" href="#" style={linkStyle}>
+            <a className="footerLink" href="/privacy" style={linkStyle}>
               Конфиденциальность
             </a>
-            <a className="footerLink" href="#" style={linkStyle}>
+            <a className="footerLink" href="/terms" style={linkStyle}>
               Условия
             </a>
           </div>

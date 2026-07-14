@@ -1,0 +1,98 @@
+/* Лендинг-приглашение savel.uz/pair/<код>. Свой самодостаточный стиль. */
+.pairMain {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(120% 120% at 50% 0%, #fff3f1 0%, #fdece9 40%, #fbe4e0 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.pairCard {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 28px;
+  padding: 36px 28px 30px;
+  text-align: center;
+  box-shadow: 0 30px 70px -30px rgba(230, 90, 114, 0.5);
+}
+.pairBrand {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #24160f;
+}
+.pairBrand span {
+  color: #fd4f61;
+}
+.pairTitle {
+  margin: 22px 0 10px;
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #24160f;
+}
+.pairSub {
+  margin: 0 0 24px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #8a7672;
+}
+.pairCodeLabel {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #b9a39d;
+}
+.pairCode {
+  margin: 8px 0 26px;
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: #fd4f61;
+  font-variant-numeric: tabular-nums;
+}
+.pairActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pairStores {
+  display: flex;
+  gap: 10px;
+}
+.pairBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.pairBtn:active {
+  opacity: 0.85;
+}
+.pairBtnPrimary {
+  background: #fd4f61;
+  color: #fff;
+  box-shadow: 0 14px 26px -12px rgba(253, 79, 97, 0.7);
+}
+.pairBtnStore {
+  flex: 1;
+  background: #f6ece9;
+  color: #24160f;
+}
+.pairHint {
+  margin: 20px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #b9a39d;
+}

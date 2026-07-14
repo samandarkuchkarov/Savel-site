@@ -1,0 +1,38 @@
+/* Общий стиль юридических страниц (/terms, /privacy). */
+.legalShell {
+  min-height: 100vh;
+  background: #fef8f3;
+  color: #3b2c2a;
+  padding: 40px 22px 80px;
+}
+.legalInner { max-width: 720px; margin: 0 auto; }
+.legalBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+  font-size: 18px;
+  color: #fd4f61;
+  text-decoration: none;
+  margin-bottom: 28px;
+}
+.legalInner h1 { font-size: 30px; font-weight: 900; letter-spacing: -0.4px; margin: 0 0 6px; }
+.legalDate { color: #a6938e; font-weight: 600; font-size: 13.5px; margin-bottom: 26px; }
+.legalInner h2 { font-size: 18px; font-weight: 900; margin: 28px 0 8px; }
+.legalInner p, .legalInner li {
+  font-size: 15px;
+  line-height: 1.65;
+  font-weight: 500;
+  color: #5a4a47;
+  margin: 0 0 10px;
+}
+.legalInner ul { padding-left: 22px; margin: 0 0 10px; }
+.legalInner a { color: #fd4f61; font-weight: 700; }
+.legalNote {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-shadow: 0 14px 30px -24px rgba(230, 90, 114, 0.5);
+  font-size: 13.5px !important;
+  color: #8a7672 !important;
+}
