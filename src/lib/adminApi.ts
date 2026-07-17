@@ -341,6 +341,18 @@ export interface AdminScheduleInterval {
   checkup_collection_title: string | null;
 }
 
+export type BoostRecommendationKind = 'challenge' | 'date' | 'tradition';
+
+export interface AdminBoostRecommendation {
+  id: string;
+  kind: BoostRecommendationKind;
+  title: string;
+  subtitle: string | null;
+  description: string | null;
+  emoji: string | null;
+  position: number;
+}
+
 export interface AdminCheckupCollection {
   id: string;
   title: string;
