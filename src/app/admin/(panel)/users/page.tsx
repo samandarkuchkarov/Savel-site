@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { adminApi, formatCompact, type AdminPage, type AdminUser } from '@/lib/adminApi';
+import { adminApi, formatUsd, type AdminPage, type AdminUser } from '@/lib/adminApi';
 import Pagination from '../Pagination';
 
 export const dynamic = 'force-dynamic';
@@ -43,7 +43,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                   <th>Email</th>
                   <th>Пара</th>
                   <th>Savel+</th>
-                  <th>Токены ИИ</th>
+                  <th>Расходы ИИ</th>
                   <th>Регистрация</th>
                   <th />
                 </tr>
@@ -68,8 +68,8 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                     </td>
                     <td
                       style={{ fontVariantNumeric: 'tabular-nums' }}
-                      title={`${user.tokens.toLocaleString('ru-RU')} токенов`}>
-                      {user.tokens > 0 ? formatCompact(user.tokens) : '—'}
+                      title={`${formatUsd(user.cost_usd)} · ${user.tokens.toLocaleString('ru-RU')} токенов`}>
+                      {user.cost_usd > 0 ? formatUsd(user.cost_usd) : '—'}
                     </td>
                     <td>{dateRu(user.created_at)}</td>
                     <td>

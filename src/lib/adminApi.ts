@@ -216,6 +216,8 @@ export interface AdminUser {
   partner_name: string | null;
   /** Суммарно потрачено токенов ИИ (вход + выход). */
   tokens: number;
+  /** Оценка расходов на ИИ в долларах (по прайсу моделей на сервере). */
+  cost_usd: number;
 }
 
 /** Компактное число: 1234 → «1.2k», 1_500_000 → «1.5M», 2_000_000_000 → «2B». */
@@ -235,6 +237,14 @@ export function formatCompact(n: number): string {
     }
   }
   return String(n);
+}
+
+/** Деньги в долларах: мелочь показываем точнее ($0.003), крупные — с разделителем ($1 234). */
+export function formatUsd(v: number): string {
+  if (!Number.isFinite(v) || v <= 0) return '$0';
+  if (v < 1) return `$${v.toFixed(3)}`;
+  if (v < 100) return `$${v.toFixed(2)}`;
+  return `$${Math.round(v).toLocaleString('ru-RU')}`;
 }
 
 export interface AdminSubscriptionEvent {
