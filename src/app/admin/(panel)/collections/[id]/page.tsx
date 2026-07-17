@@ -7,6 +7,7 @@ import {
   type AdminCollectionDetail,
 } from '@/lib/adminApi';
 import CollectionForm from '../CollectionForm';
+import ConfirmButton from '../../ConfirmButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +37,7 @@ async function saveCollection(formData: FormData) {
       categoryId: categoryId || null,
       imageUrl: uploadedImageUrl ?? currentImageUrl,
       active: formData.get('active') === 'on',
+      plus: formData.get('plus') === 'on',
     }),
   });
   revalidatePath('/admin/collections');
@@ -103,16 +105,12 @@ async function moveQuestion(formData: FormData) {
   if (index === -1 || target < 0 || target >= list.length) return;
   const next = [...list];
   [next[index], next[target]] = [next[target], next[index]];
-  await Promise.all(
-    next.map((question, i) =>
-      question.sort === i + 1
-        ? Promise.resolve()
-        : adminApi(`/questions/${question.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ sort: i + 1 }),
-          }),
-    ),
-  );
+  // Весь порядок одним запросом (одна транзакция на сервере): пачка
+  // параллельных PATCH при обрыве оставляла порядок наполовину применённым.
+  await adminApi('/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ entity: 'questions', ids: next.map(item => item.id) }),
+  });
   revalidatePath(`/admin/collections/${collectionId}`);
 }
 
@@ -194,9 +192,12 @@ export default async function EditCollectionPage({ params, searchParams }: Props
             <form action={deleteQuestion}>
               <input type="hidden" name="collectionId" value={collection.id} />
               <input type="hidden" name="questionId" value={question.id} />
-              <button className="adminDangerBtn" type="submit">
+              <ConfirmButton
+                className="adminDangerBtn"
+                type="submit"
+                confirmText="Удалить вопрос? Ответы пар на него исчезнут из приложения.">
                 Удалить
-              </button>
+              </ConfirmButton>
             </form>
           </div>
         </div>

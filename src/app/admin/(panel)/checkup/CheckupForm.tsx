@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { adminAssetUrl, type AdminCheckupCollection } from '@/lib/adminApi';
+import ConfirmButton from '../ConfirmButton';
 
 type Props = {
   checkup?: AdminCheckupCollection;
@@ -62,9 +63,14 @@ export default function CheckupForm({ checkup, action, deleteAction, submitLabel
           Отмена
         </Link>
         {checkup && deleteAction ? (
-          <button className="adminDangerBtn" formAction={deleteAction} formNoValidate type="submit">
+          <ConfirmButton
+            className="adminDangerBtn"
+            formAction={deleteAction}
+            formNoValidate
+            type="submit"
+            confirmText="Удалить чек-ап вместе со всеми его вопросами?">
             Удалить чек-ап
-          </button>
+          </ConfirmButton>
         ) : null}
       </div>
     </form>

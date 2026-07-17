@@ -1,3 +1,4 @@
+import ConfirmButton from '../ConfirmButton';
 import Link from 'next/link';
 import type {
   AdminCheckupCollection,
@@ -93,9 +94,14 @@ export default function ScheduleForm({
           Отмена
         </Link>
         {interval && deleteAction ? (
-          <button className="adminDangerBtn" formAction={deleteAction} formNoValidate type="submit">
+          <ConfirmButton
+            className="adminDangerBtn"
+            formAction={deleteAction}
+            formNoValidate
+            type="submit"
+            confirmText="Удалить интервал расписания? Вопросы и чек-ап этой недели исчезнут у пользователей.">
             Удалить интервал
-          </button>
+          </ConfirmButton>
         ) : null}
       </div>
     </form>

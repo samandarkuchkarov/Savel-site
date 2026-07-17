@@ -15,16 +15,12 @@ async function moveCategory(formData: FormData) {
   if (index === -1 || target < 0 || target >= list.length) return;
   const next = [...list];
   [next[index], next[target]] = [next[target], next[index]];
-  await Promise.all(
-    next.map((category, i) =>
-      category.sort === i + 1
-        ? Promise.resolve()
-        : adminApi(`/categories/${category.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ sort: i + 1 }),
-          }),
-    ),
-  );
+  // Весь порядок одним запросом (одна транзакция на сервере): пачка
+  // параллельных PATCH при обрыве оставляла порядок наполовину применённым.
+  await adminApi('/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ entity: 'categories', ids: next.map(item => item.id) }),
+  });
   revalidatePath('/admin/categories');
 }
 

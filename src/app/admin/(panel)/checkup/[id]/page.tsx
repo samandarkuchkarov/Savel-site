@@ -6,6 +6,7 @@ import {
   type AdminCheckupCollectionDetail,
 } from '@/lib/adminApi';
 import CheckupForm from '../CheckupForm';
+import ConfirmButton from '../../ConfirmButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,16 +93,12 @@ async function moveQuestion(formData: FormData) {
   if (index === -1 || target < 0 || target >= list.length) return;
   const next = [...list];
   [next[index], next[target]] = [next[target], next[index]];
-  await Promise.all(
-    next.map((q, i) =>
-      q.sort === i + 1
-        ? Promise.resolve()
-        : adminApi(`/checkup-questions/${q.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ sort: i + 1 }),
-          }),
-    ),
-  );
+  // Весь порядок одним запросом (одна транзакция на сервере): пачка
+  // параллельных PATCH при обрыве оставляла порядок наполовину применённым.
+  await adminApi('/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ entity: 'checkup-questions', ids: next.map(item => item.id) }),
+  });
   revalidatePath(`/admin/checkup/${checkupId}`);
 }
 
@@ -172,9 +169,12 @@ export default async function EditCheckupPage({ params, searchParams }: Props) {
             <form action={deleteQuestion} className="checkupDelete">
               <input type="hidden" name="checkupId" value={checkup.id} />
               <input type="hidden" name="questionId" value={question.id} />
-              <button className="adminDangerBtn" type="submit">
+              <ConfirmButton
+                className="adminDangerBtn"
+                type="submit"
+                confirmText="Удалить вопрос чек-апа? Сохранённые оценки на него перестанут отображаться.">
                 Удалить
-              </button>
+              </ConfirmButton>
             </form>
           </div>
         ))}

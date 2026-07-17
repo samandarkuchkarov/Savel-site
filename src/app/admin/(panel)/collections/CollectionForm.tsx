@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { adminAssetUrl, type AdminCategory, type AdminCollection } from '@/lib/adminApi';
+import ConfirmButton from '../ConfirmButton';
 
 type Props = {
   collection?: AdminCollection;
@@ -72,6 +73,10 @@ export default function CollectionForm({
           <input type="checkbox" name="active" defaultChecked={collection?.active ?? true} />{' '}
           Активна
         </label>
+        <label className="categoryActiveCheck">
+          <input type="checkbox" name="plus" defaultChecked={collection?.plus ?? false} /> Платная
+          (Savel+)
+        </label>
       </div>
 
       <div className="categoryEditActions">
@@ -82,9 +87,14 @@ export default function CollectionForm({
           Отмена
         </Link>
         {collection && deleteAction ? (
-          <button className="adminDangerBtn" formAction={deleteAction} formNoValidate type="submit">
+          <ConfirmButton
+            className="adminDangerBtn"
+            formAction={deleteAction}
+            formNoValidate
+            type="submit"
+            confirmText="Удалить подборку вместе со всеми вопросами и ответами пар на них?">
             Удалить подборку
-          </button>
+          </ConfirmButton>
         ) : null}
       </div>
     </form>

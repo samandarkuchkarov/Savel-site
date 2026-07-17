@@ -8,6 +8,7 @@ import {
   type AdminNotification,
 } from '@/lib/adminApi';
 import NotificationForm from '../NotificationForm';
+import ConfirmButton from '../../ConfirmButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -122,9 +123,12 @@ export default async function EditNotificationPage({ params, searchParams }: Pro
       <div className="categoryEditActions" style={{ marginTop: 16 }}>
         <form action={deleteNotification}>
           <input type="hidden" name="id" value={notification.id} />
-          <button className="adminDangerBtn" type="submit">
+          <ConfirmButton
+            className="adminDangerBtn"
+            type="submit"
+            confirmText="Удалить рассылку? Отправленная исчезнет из ленты уведомлений у всех пользователей.">
             {editable ? 'Отменить и удалить' : 'Удалить из истории'}
-          </button>
+          </ConfirmButton>
         </form>
         <Link className="adminGhostLink" href="/admin/notifications">
           Назад к списку

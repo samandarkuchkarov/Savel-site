@@ -15,16 +15,12 @@ async function moveCollection(formData: FormData) {
   if (index === -1 || target < 0 || target >= list.length) return;
   const next = [...list];
   [next[index], next[target]] = [next[target], next[index]];
-  await Promise.all(
-    next.map((collection, i) =>
-      collection.sort === i + 1
-        ? Promise.resolve()
-        : adminApi(`/collections/${collection.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ sort: i + 1 }),
-          }),
-    ),
-  );
+  // Весь порядок одним запросом (одна транзакция на сервере): пачка
+  // параллельных PATCH при обрыве оставляла порядок наполовину применённым.
+  await adminApi('/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ entity: 'collections', ids: next.map(item => item.id) }),
+  });
   revalidatePath('/admin/collections');
 }
 
@@ -81,7 +77,10 @@ export default async function AdminCollectionsPage() {
                       <span className="catThumb catThumbEmpty">нет</span>
                     )}
                   </td>
-                  <td>{collection.title}</td>
+                  <td>
+                    {collection.title}
+                    {collection.plus ? <span className="pill pillCoral">Savel+</span> : null}
+                  </td>
                   <td>{collection.category_title ?? <span className="pill pillMuted">без категории</span>}</td>
                   <td>{collection.question_count}</td>
                   <td>

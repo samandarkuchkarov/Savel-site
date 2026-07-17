@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { adminAssetUrl, type AdminCategory } from '@/lib/adminApi';
+import ConfirmButton from '../ConfirmButton';
 
 type Props = {
   category?: AdminCategory;
@@ -77,9 +78,14 @@ export default function CategoryForm({ category, action, deleteAction, submitLab
           Отмена
         </Link>
         {category && deleteAction ? (
-          <button className="adminDangerBtn" formAction={deleteAction} formNoValidate type="submit">
+          <ConfirmButton
+            className="adminDangerBtn"
+            formAction={deleteAction}
+            formNoValidate
+            type="submit"
+            confirmText="Удалить категорию? Её подборки останутся, но пропадут из каталога приложения.">
             Удалить
-          </button>
+          </ConfirmButton>
         ) : null}
       </div>
     </form>

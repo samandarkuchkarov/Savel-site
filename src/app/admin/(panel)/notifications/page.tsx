@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { adminApi, type AdminNotificationList } from '@/lib/adminApi';
+import ConfirmButton from '../ConfirmButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,9 +121,12 @@ export default async function NotificationsPage({
                       </Link>
                       <form action={deleteNotification}>
                         <input type="hidden" name="id" value={n.id} />
-                        <button className="adminDangerBtn" type="submit">
+                        <ConfirmButton
+                          className="adminDangerBtn"
+                          type="submit"
+                          confirmText="Удалить рассылку? Отправленная исчезнет из ленты уведомлений у всех пользователей.">
                           Удалить
-                        </button>
+                        </ConfirmButton>
                       </form>
                     </td>
                   </tr>

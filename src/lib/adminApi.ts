@@ -351,6 +351,8 @@ export interface AdminCollection {
   image_url: string | null;
   sort: number;
   active: boolean;
+  /** true — подборка доступна только с Savel+. */
+  plus: boolean;
   question_count: number;
   category_title?: string | null;
 }

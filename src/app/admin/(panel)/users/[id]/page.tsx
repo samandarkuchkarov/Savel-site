@@ -1,3 +1,4 @@
+import ConfirmButton from '../../ConfirmButton';
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
@@ -164,9 +165,14 @@ export default async function AdminUserPage({ params }: Props) {
           <button className="adminBtn" type="submit">
             Сохранить Savel+
           </button>
-          <button className="adminDangerBtn" formAction={deleteUser} formNoValidate type="submit">
+          <ConfirmButton
+            className="adminDangerBtn"
+            formAction={deleteUser}
+            formNoValidate
+            type="submit"
+            confirmText="Удалить пользователя безвозвратно? Пара будет расторгнута, вся общая история (чаты, ответы, чек-апы) удалится и у партнёра.">
             Удалить пользователя
-          </button>
+          </ConfirmButton>
         </div>
       </form>
 

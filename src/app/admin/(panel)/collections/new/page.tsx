@@ -16,6 +16,7 @@ async function createCollection(formData: FormData) {
       categoryId: categoryId || null,
       imageUrl: uploadedImageUrl,
       active: formData.get('active') === 'on',
+      plus: formData.get('plus') === 'on',
     }),
   });
   revalidatePath('/admin/collections');
