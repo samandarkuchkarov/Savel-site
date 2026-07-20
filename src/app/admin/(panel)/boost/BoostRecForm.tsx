@@ -4,6 +4,7 @@ const KIND_LABELS: Record<AdminBoostRecommendation['kind'], string> = {
   challenge: 'Челлендж',
   date: 'Свидание',
   tradition: 'Традиция',
+  goal: 'Цель',
 };
 
 /**
@@ -33,6 +34,7 @@ export default function BoostRecForm({
             <option value="challenge">Челлендж</option>
             <option value="date">Свидание</option>
             <option value="tradition">Традиция</option>
+            <option value="goal">Цель</option>
           </select>
         </label>
       )}

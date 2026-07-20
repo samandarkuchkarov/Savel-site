@@ -9,6 +9,7 @@ const KIND_TITLES: Record<BoostRecommendationKind, string> = {
   challenge: 'Челленджи',
   date: 'Свидания',
   tradition: 'Традиции',
+  goal: 'Цели',
 };
 
 /** Стрелка ↑/↓: сервер меняет позиции с соседом внутри вида (транзакция). */
