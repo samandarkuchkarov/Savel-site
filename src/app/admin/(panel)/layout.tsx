@@ -41,6 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/collections">Вопросов</Link>
           <Link href="/admin/checkup">Чек-ап</Link>
           <Link href="/admin/boost">Буст</Link>
+          <Link href="/admin/referrals">Рефералы</Link>
           <Link href="/admin/settings">Значения</Link>
           <Link href="/admin/notifications">Уведомления</Link>
           <form action={logout}>
