@@ -68,6 +68,11 @@ export const ADMIN_COOKIE = 'savel_admin';
  * сессий и неотзываемым. Теперь в cookie нет ничего производного от пароля,
  * logout реально отзывает сессию, а рестарт сервиса сбрасывает все (админ
  * просто логинится заново).
+ *
+ * ⚠️ Требование: ОДИН постоянный процесс (systemd `savel-site` на VPS — так и
+ * задеплоено, см. DEPLOY.md §6). Несколько реплик / PM2 cluster / serverless
+ * несовместимы с Map — прежде чем масштабировать, перенесите сессии в
+ * Postgres/Redis.
  */
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const adminSessions = new Map<string, number>(); // token → expiresAt (ms)
