@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { adminApi, formatUsd, type AdminPage, type AdminUser } from '@/lib/adminApi';
+import { adminApi, formatUsd, plusSourcesLabel, type AdminPage, type AdminUser } from '@/lib/adminApi';
 import Pagination from '../Pagination';
 
 export const dynamic = 'force-dynamic';
@@ -64,7 +64,13 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                       )}
                     </td>
                     <td>
-                      {user.savel_plus ? <span className="pill pillCoral">Savel+</span> : '—'}
+                      {user.effective_plus ? (
+                        <span className="pill pillCoral" title={plusSourcesLabel(user.plus_sources)}>
+                          Savel+
+                        </span>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td
                       style={{ fontVariantNumeric: 'tabular-nums' }}

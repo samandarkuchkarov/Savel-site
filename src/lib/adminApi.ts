@@ -215,7 +215,12 @@ export interface AdminUser {
   email: string | null;
   gender: 'male' | 'female' | null;
   pair_code: string;
+  /** Ручной admin-флаг (для деталей). Для отображения статуса — effective_plus. */
   savel_plus: boolean;
+  /** Эффективный Savel+: подписка / реферал / партнёр / грант — как в runtime. */
+  effective_plus: boolean;
+  /** Откуда доступ: admin_grant | referral | partner | test_store | app_store | google_play. */
+  plus_sources: string[] | null;
   created_at: string;
   paired: boolean;
   partner_name: string | null;
@@ -223,6 +228,20 @@ export interface AdminUser {
   tokens: number;
   /** Оценка расходов на ИИ в долларах (по прайсу моделей на сервере). */
   cost_usd: number;
+}
+
+/** Человекочитаемая подпись источников Savel+ (для tooltip). */
+export const PLUS_SOURCE_RU: Record<string, string> = {
+  admin_grant: 'ручной грант',
+  referral: 'реферальные месяцы',
+  partner: 'через партнёра',
+  test_store: 'тестовая подписка',
+  app_store: 'App Store',
+  google_play: 'Google Play',
+};
+export function plusSourcesLabel(sources: string[] | null): string {
+  if (!sources || sources.length === 0) return 'Savel+';
+  return sources.map(s => PLUS_SOURCE_RU[s] ?? s).join(', ');
 }
 
 /** Компактное число: 1234 → «1.2k», 1_500_000 → «1.5M», 2_000_000_000 → «2B». */
