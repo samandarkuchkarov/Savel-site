@@ -4,6 +4,12 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.SAVEL_API_URL ?? 'http://localhost:4000';
 
+// Server→API data fetches use SAVEL_API_URL (loopback in prod). But uploaded
+// images are loaded by the BROWSER, which can't reach the server's loopback —
+// their <img src> must point at the public API origin. In prod set
+// PUBLIC_API_URL=https://api.savel.uz; in local dev it falls back to API_URL.
+const PUBLIC_API_URL = process.env.PUBLIC_API_URL ?? API_URL;
+
 /**
  * Reject any privileged server→API call without a valid admin cookie. Server Actions are
  * public POST endpoints — the (panel)/layout redirect runs on re-render AFTER the action body,
@@ -35,7 +41,7 @@ export async function adminApi<T>(path: string, init?: RequestInit): Promise<T> 
 export function adminAssetUrl(value: string | null | undefined): string {
   if (!value) return '';
   if (/^https?:\/\//i.test(value)) return value;
-  return new URL(value, API_URL).toString();
+  return new URL(value, PUBLIC_API_URL).toString();
 }
 
 export async function adminUploadImage(file: FormDataEntryValue | null): Promise<string | null> {
