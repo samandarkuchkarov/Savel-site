@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { APK_URL, APK_FILENAME } from "@/lib/appDownload";
 
 const NAV_LINKS = [
   { href: "#features", label: "Возможности" },
@@ -65,7 +66,7 @@ export default function Nav() {
           ))}
         </div>
 
-        <a className="navCta" href="#download">
+        <a className="navCta" href={APK_URL} download={APK_FILENAME}>
           Скачать
         </a>
 

@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { APK_URL, APK_FILENAME, APP_VERSION } from "@/lib/appDownload";
 
 const HEART =
   "M12 20.5l-1.4-1.3C5.4 14.3 2 11.2 2 7.4 2 4.4 4.4 2 7.4 2c1.7 0 3.3.8 4.6 2.1C13.3 2.8 14.9 2 16.6 2 19.6 2 22 4.4 22 7.4c0 3.8-3.4 6.9-8.6 11.8L12 20.5z";
@@ -99,7 +100,8 @@ export default function Hero() {
             }}
           >
             <a
-              href="#"
+              href={APK_URL}
+              download={APK_FILENAME}
               data-magnet="1"
               style={{
                 position: "relative",
@@ -151,6 +153,17 @@ export default function Hero() {
             >
               Как это работает
             </a>
+          </div>
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 13.5,
+              fontWeight: 600,
+              color: "#a2908b",
+              animation: "savelFadeUp 0.7s ease 1.1s both",
+            }}
+          >
+            Android · APK v{APP_VERSION} · {APK_FILENAME}
           </div>
         </div>
 
