@@ -273,9 +273,17 @@ export function formatUsd(v: number): string {
 
 export interface AdminSubscriptionEvent {
   id: string;
-  action: 'purchase' | 'restore' | 'admin_grant' | 'admin_revoke';
+  action:
+    | 'purchase'
+    | 'restore'
+    | 'admin_grant'
+    | 'admin_revoke'
+    | 'test_subscription_grant'
+    | 'test_subscription_revoke'
+    | 'referral_reward'
+    | 'referral_bonus';
   plan: string | null;
-  source: 'app' | 'admin';
+  source: 'app' | 'admin' | 'referral';
   note: string | null;
   created_at: string;
 }

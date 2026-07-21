@@ -27,7 +27,22 @@ const ACTION_LABEL: Record<AdminSubscriptionEvent['action'], string> = {
   restore: 'Восстановление',
   admin_grant: 'Выдано админом',
   admin_revoke: 'Отозвано админом',
+  test_subscription_grant: 'Тест выдан',
+  test_subscription_revoke: 'Тест отозван',
+  referral_reward: 'Реферальная награда',
+  referral_bonus: 'Реферальный бонус',
 };
+
+const SOURCE_LABEL: Record<AdminSubscriptionEvent['source'], string> = {
+  app: 'Приложение',
+  admin: 'Админ',
+  referral: 'Реферал',
+};
+
+const REVOKE_ACTIONS = new Set<AdminSubscriptionEvent['action']>([
+  'admin_revoke',
+  'test_subscription_revoke',
+]);
 
 /**
  * График баллов чек-апов: пользователь (коралловый) vs партнёр (розовый).
@@ -197,14 +212,12 @@ export default async function AdminUserPage({ params }: Props) {
                   <td>{dateTimeRu(event.created_at)}</td>
                   <td>
                     <span
-                      className={
-                        event.action === 'admin_revoke' ? 'pill pillMuted' : 'pill pillGreen'
-                      }>
-                      {ACTION_LABEL[event.action]}
+                      className={REVOKE_ACTIONS.has(event.action) ? 'pill pillMuted' : 'pill pillGreen'}>
+                      {ACTION_LABEL[event.action] ?? event.action}
                     </span>
                   </td>
                   <td>{event.plan ?? '—'}</td>
-                  <td>{event.source === 'admin' ? 'Админ' : 'Приложение'}</td>
+                  <td>{SOURCE_LABEL[event.source] ?? event.source}</td>
                   <td>{event.note ?? '—'}</td>
                 </tr>
               ))}
