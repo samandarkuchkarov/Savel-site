@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supportMessageCursor, type AdminSupportMessage } from '@/lib/adminSupport';
 
 /**
- * Живой диалог поддержки. Ходит ТОЛЬКО в наш /api/admin/support (админ-cookie);
+ * Живой диалог поддержки. Ходит ТОЛЬКО в наш /admin/api/support (админ-cookie);
  * ADMIN_TOKEN остаётся на сервере Next. Обновление — поллинг новых сообщений
  * keyset-курсором каждые 3с; отправка идемпотентна по clientId (ретрай после
  * сбоя переиспользует тот же id и не создаёт дубль).
@@ -58,7 +58,7 @@ export default function SupportDialog({
       const lastUser = [...list].reverse().find(m => m.sender === 'user');
       if (!lastUser || lastReadAnchor.current === lastUser.id) return;
       lastReadAnchor.current = lastUser.id;
-      void fetch('/api/admin/support', {
+      void fetch('/admin/api/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'read', threadId, upToMessageId: lastUser.id }),
@@ -85,7 +85,7 @@ export default function SupportDialog({
       const qs = new URLSearchParams({ threadId, limit: String(PAGE) });
       if (after) qs.set('after', after);
       try {
-        const res = await fetch(`/api/admin/support?${qs}`, { cache: 'no-store' });
+        const res = await fetch(`/admin/api/support?${qs}`, { cache: 'no-store' });
         if (!res.ok || stopped) return;
         const incoming = (await res.json()) as AdminSupportMessage[];
         if (!Array.isArray(incoming) || incoming.length === 0) return;
@@ -121,7 +121,7 @@ export default function SupportDialog({
     try {
       const before = supportMessageCursor(messages[0]);
       const qs = new URLSearchParams({ threadId, before, limit: String(PAGE) });
-      const res = await fetch(`/api/admin/support?${qs}`, { cache: 'no-store' });
+      const res = await fetch(`/admin/api/support?${qs}`, { cache: 'no-store' });
       if (res.ok) {
         const older = (await res.json()) as AdminSupportMessage[];
         setHasEarlier(older.length >= PAGE);
@@ -140,7 +140,7 @@ export default function SupportDialog({
     setPending(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/support', {
+      const res = await fetch('/admin/api/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'send', threadId, text, clientId }),
@@ -183,7 +183,8 @@ export default function SupportDialog({
         {hasEarlier ? (
           <button
             type="button"
-            className="sortBtn"
+            /* не sortBtn: тот фиксированные 32×32 под стрелки — длинная подпись вываливается */
+            className="filterChip"
             onClick={loadEarlier}
             disabled={loadingEarlier}
             style={{ alignSelf: 'center' }}>

@@ -319,7 +319,8 @@
   background: #fff;
   border: 1.5px solid #eadfd8;
 }
-.filterChip:hover { border-color: #fd4f61; color: #fd4f61; }
+.filterChip:hover:not(:disabled) { border-color: #fd4f61; color: #fd4f61; }
+.filterChip:disabled { opacity: 0.5; cursor: default; }
 .filterChipOn {
   color: #fff;
   background: #fd4f61;

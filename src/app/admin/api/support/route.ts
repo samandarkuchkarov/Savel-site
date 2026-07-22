@@ -5,6 +5,12 @@ import { isAdminAuthed } from '@/lib/adminApi';
  * Браузерный мост для живого диалога поддержки: клиентский компонент админки
  * поллит/отправляет сюда С АДМИН-COOKIE, а Next-сервер ходит в API с
  * ADMIN_TOKEN. Токен никогда не попадает в браузерный JavaScript.
+ *
+ * ⚠️ Путь обязан начинаться с /admin. Админ-cookie ставится с `path: '/admin'`
+ * (см. admin/login/page.tsx), а браузер шлёт cookie только на совпадающий по
+ * префиксу путь (RFC 6265). Раньше маршрут жил на /api/admin/support — cookie
+ * туда НЕ уходил, isAdminAuthed() всегда возвращал false, и диалог показывал
+ * «Сессия истекла — войдите заново» на каждой отправке; перелогин не помогал.
  */
 
 const API_URL = process.env.SAVEL_API_URL ?? 'http://localhost:4000';
