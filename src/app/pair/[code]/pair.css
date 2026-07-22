@@ -90,6 +90,19 @@
   background: #f6ece9;
   color: #24160f;
 }
+.pairBtnDownload {
+  background: #24160f;
+  color: #fff;
+}
+.pairDownloadNote {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #b9a39d;
+  font-variant-numeric: tabular-nums;
+}
 .pairHint {
   margin: 20px 0 0;
   font-size: 12.5px;

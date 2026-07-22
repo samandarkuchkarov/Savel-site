@@ -41,13 +41,13 @@ export function inviteViewModel(formatOk: boolean, status: InviteStatus | null):
     case 'valid':
       return {
         kind: 'valid',
-        title: 'Вам дарят месяц Savel+',
-        // Обещаем подарок ПАРЕ приглашённого; бонус пригласившему не обещаем —
-        // он ограничен потолком и страницы не касается.
+        title: 'Вас приглашают в Savel',
+        // Месяц Savel+ приглашённой паре НЕ обещаем — награда программы уходит
+        // пригласившему; новых ждут стартовые бонусы приложения.
         sub:
           'Друзья приглашают вас в Savel — приложение для двоих: вопросы, чек-апы отношений, ' +
           'традиции и цели. Установите приложение, соедините профили с партнёром и введите код ' +
-          'приглашения — вашей паре откроется месяц Savel+ бесплатно.',
+          'приглашения из ссылки.',
         showGift: true,
         showRetry: false,
       };
@@ -55,7 +55,7 @@ export function inviteViewModel(formatOk: boolean, status: InviteStatus | null):
       return {
         kind: 'expired',
         title: 'Срок действия приглашения истёк',
-        sub: 'Попросите друзей отправить новую ссылку из приложения — и подарок снова будет ждать вас.',
+        sub: 'Попросите друзей отправить новую ссылку из приложения — и она снова будет работать.',
         showGift: false,
         showRetry: false,
       };
@@ -96,5 +96,5 @@ export function inviteViewModel(formatOk: boolean, status: InviteStatus | null):
  */
 export const INVITE_METADATA = {
   title: 'Приглашение в Savel',
-  description: 'Savel — приложение для пар: вопросы, чек-апы отношений, традиции и цели.',
+  description: 'Мы с парой ведём и улучшаем отношения в Savel — присоединяйтесь!',
 } as const;

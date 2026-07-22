@@ -69,6 +69,12 @@ export default async function EditSchedulePage({ params, searchParams }: Props) 
     notFound();
   }
 
+  // Фаза интервала по датам (та же логика, что и статус в списке): активный —
+  // редактируемый с предупреждением, будущий — обычный, прошедший — только чтение.
+  const today = new Date().toISOString().slice(0, 10);
+  const phase: 'active' | 'future' | 'past' =
+    today < interval.starts_on ? 'future' : today > interval.ends_on ? 'past' : 'active';
+
   return (
     <>
       <h1 className="adminH1">Интервал расписания</h1>
@@ -81,6 +87,7 @@ export default async function EditSchedulePage({ params, searchParams }: Props) 
         action={saveInterval}
         deleteAction={deleteInterval}
         submitLabel="Сохранить"
+        phase={phase}
       />
     </>
   );

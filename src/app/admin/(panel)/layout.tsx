@@ -45,6 +45,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/subscriptions">Подписки</Link>
           <Link href="/admin/settings">Значения</Link>
           <Link href="/admin/notifications">Уведомления</Link>
+          <Link href="/admin/support">Поддержка</Link>
           <form action={logout}>
             <button className="adminGhostBtn" type="submit">
               Выйти

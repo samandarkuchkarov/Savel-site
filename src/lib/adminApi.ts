@@ -106,27 +106,14 @@ export function verifyAdminPassword(password: unknown): boolean {
 
 /* ── Rate limit логина: перебор пароля — единственная дверь в приватные данные пар ── */
 
-const LOGIN_WINDOW_MS = 15 * 60 * 1000;
-const LOGIN_MAX_ATTEMPTS = 5;
-const loginAttempts = new Map<string, { count: number; resetAt: number }>(); // ip → окно
-
-/** Зарегистрировать попытку логина; true = лимит исчерпан, попытку не обрабатываем. */
-export function loginRateLimited(ip: string): boolean {
-  const now = Date.now();
-  for (const [k, v] of loginAttempts) if (v.resetAt <= now) loginAttempts.delete(k);
-  const slot = loginAttempts.get(ip);
-  if (!slot) {
-    loginAttempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
-    return false;
-  }
-  slot.count += 1;
-  return slot.count > LOGIN_MAX_ATTEMPTS;
-}
-
-/** Успешный вход — снимаем счётчик с этого IP. */
-export function clearLoginAttempts(ip: string): void {
-  loginAttempts.delete(ip);
-}
+// Сам лимитер живёт в чистом модуле (тестируется node:test); реэкспорт — чтобы
+// страница логина брала всё из '@/lib/adminApi', как и раньше.
+export {
+  loginRateLimited,
+  clearLoginAttempts,
+  loginFailDelay,
+  LOGIN_LIMITS,
+} from './loginRateLimit';
 
 export async function isAdminAuthed(): Promise<boolean> {
   const jar = await cookies();
@@ -473,3 +460,11 @@ export interface AdminCoupleDetail {
   checkups: AdminCheckupResult[];
   answers: AdminQuestionAnswer[];
 }
+
+/* ── Чат поддержки ─────────────────────────────────────── */
+
+// Типы/утилиты поддержки живут в client-safe модуле (их импортирует браузерный
+// SupportDialog); реэкспорт здесь — чтобы серверные страницы могли и дальше
+// брать их из '@/lib/adminApi'. НЕ импортируйте adminApi из client-компонентов.
+export type { AdminSupportThread, AdminSupportMessage } from './adminSupport';
+export { supportMessageCursor } from './adminSupport';

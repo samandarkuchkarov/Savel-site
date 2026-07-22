@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.savel",
+      "sha256_cert_fingerprints": [
+        "DC:81:AB:82:B8:28:E3:BB:92:7E:9C:CB:02:B0:67:58:04:D2:70:81:46:9A:AC:92:1A:D8:7F:4A:70:19:E4:E1"
+      ]
+    }
+  }
+]

@@ -12,18 +12,19 @@ import type { InviteStatus } from './inviteApi.js';
 
 const status = (s: InviteStatus['status']): InviteStatus => ({
   status: s,
-  eligibleForPairReward: s === 'valid',
+  // Сервер теперь всегда false: награда программы — только пригласившему.
+  eligibleForPairReward: false,
 });
 
 describe('inviteViewModel', () => {
-  it('valid: страница обещает месяц Savel+ и показывает код', () => {
+  it('valid: страница приглашает и показывает код, но НЕ обещает месяц паре', () => {
     const view = inviteViewModel(true, status('valid'));
     assert.equal(view.kind, 'valid');
-    assert.ok(view.title.includes('дарят месяц Savel+')); // неразрывный пробел из дизайна
+    assert.ok(view.title.includes('приглашают в Savel'));
     assert.equal(view.showGift, true);
     assert.equal(view.showRetry, false);
-    // Текст обещает подарок ПАРЕ и не обещает бонус пригласившему.
-    assert.ok(view.sub.includes('вашей паре'));
+    // Месяц Savel+ приглашённой паре не обещается (награда уходит пригласившему).
+    assert.ok(!view.sub.includes('бесплатно'));
   });
 
   it('invalid (несуществующий код): никакого обещания подарка', () => {

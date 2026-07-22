@@ -13,7 +13,8 @@ export default function Pagination({ basePath, page, limit, total }: Props) {
   if (pages <= 1) return null;
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
-  const href = (p: number) => `${basePath}?page=${p}`;
+  // basePath может уже нести query (поиск/фильтры) — тогда page добавляется через '&'.
+  const href = (p: number) => `${basePath}${basePath.includes('?') ? '&' : '?'}page=${p}`;
 
   return (
     <div className="adminPager">

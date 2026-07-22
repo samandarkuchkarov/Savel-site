@@ -13,6 +13,8 @@ type Props = {
   action: (formData: FormData) => Promise<void>;
   deleteAction?: (formData: FormData) => Promise<void>;
   submitLabel: string;
+  /** Фаза интервала — управляет предупреждением и режимом «только чтение». */
+  phase?: 'active' | 'future' | 'past';
 };
 
 /**
@@ -38,6 +40,7 @@ export default function ScheduleForm({
   action,
   deleteAction,
   submitLabel,
+  phase,
 }: Props) {
   // Выбранную ранее, но ставшую непригодной подборку оставляем в списке (с пометкой):
   // иначе при редактировании дат select молча сбросился бы на «Не задана».
@@ -50,6 +53,44 @@ export default function ScheduleForm({
   return (
     <form action={action} className="statCard categoryEditForm adminForm">
       {interval ? <input type="hidden" name="id" value={interval.id} /> : null}
+
+      {phase === 'active' ? (
+        <div
+          role="alert"
+          style={{
+            background: '#fff4e5',
+            border: '1px solid #f2c98a',
+            color: '#8a5a12',
+            borderRadius: 10,
+            padding: '10px 13px',
+            fontSize: 13,
+            fontWeight: 600,
+            lineHeight: 1.5,
+          }}>
+          Это активная неделя. Изменения применяются сразу у всех пользователей. Смена
+          дат безопасна; смена подборки — те, кто уже ответил на этой неделе, сохранят
+          свой ответ, новый контент увидят только не ответившие. Удаление уберёт вопросы
+          и чек-ап недели у всех немедленно.
+        </div>
+      ) : null}
+      {phase === 'past' ? (
+        <div
+          role="alert"
+          style={{
+            background: '#f3eee9',
+            border: '1px solid #ded2c8',
+            color: '#6f6157',
+            borderRadius: 10,
+            padding: '10px 13px',
+            fontSize: 13,
+            fontWeight: 600,
+            lineHeight: 1.5,
+          }}>
+          Это прошедший период — история ответов пользователей. Правка меняет то, что
+          отображается в истории (ответы уже ответивших остаются, но под новым текстом
+          вопросов), удаление убирает интервал из истории. Действуйте осознанно.
+        </div>
+      ) : null}
 
       <div className="scheduleDates">
         <label>
@@ -99,7 +140,13 @@ export default function ScheduleForm({
             formAction={deleteAction}
             formNoValidate
             type="submit"
-            confirmText="Удалить интервал расписания? Вопросы и чек-ап этой недели исчезнут у пользователей.">
+            confirmText={
+              phase === 'active'
+                ? 'Удалить АКТИВНУЮ неделю? Вопросы и чек-ап немедленно исчезнут у всех пользователей. Ответы уже ответивших сохранятся в истории. Отменить нельзя.'
+                : phase === 'past'
+                  ? 'Удалить прошедший интервал из истории? Ответы пользователей сохранятся, но интервал исчезнет. Отменить нельзя.'
+                  : 'Удалить интервал расписания? Отменить нельзя.'
+            }>
             Удалить интервал
           </ConfirmButton>
         ) : null}

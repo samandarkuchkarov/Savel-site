@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import {
   ADMIN_COOKIE,
   clearLoginAttempts,
   issueAdminSession,
+  loginFailDelay,
   loginRateLimited,
   verifyAdminPassword,
 } from '@/lib/adminApi';
+import { clientIp } from '@/lib/clientIp';
 import '../admin.css';
 
 export const metadata: Metadata = {
@@ -17,9 +19,12 @@ export const metadata: Metadata = {
 
 async function login(formData: FormData) {
   'use server';
-  // Caddy проставляет X-Forwarded-For; лимитируем перебор пароля по IP.
-  const hdrs = await headers();
-  const ip = (hdrs.get('x-forwarded-for') ?? 'local').split(',')[0].trim();
+  // Ключ лимита — IP из ДОВЕРЕННОЙ части X-Forwarded-For (общий clientIp()):
+  // Caddy дописывает реальный адрес СПРАВА, а левые записи подделывает клиент.
+  // Раньше здесь брали `.split(',')[0]` — атакующий слал новый фейковый первый
+  // IP на каждом запросе, получал свежее окно и перебирал пароль без лимита.
+  // null (нет XFF / мусор) → один общий ключ: fail-closed, не лазейка.
+  const ip = (await clientIp()) ?? 'unknown';
   if (loginRateLimited(ip)) redirect('/admin/login?error=rate');
   if (verifyAdminPassword(formData.get('password'))) {
     clearLoginAttempts(ip);
@@ -35,6 +40,8 @@ async function login(formData: FormData) {
     });
     redirect('/admin');
   }
+  // Пауза только на неверном пароле (redirect() бросает — ставим ДО него).
+  await loginFailDelay();
   redirect('/admin/login?error=1');
 }
 
