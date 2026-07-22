@@ -58,11 +58,15 @@ export default async function AdminSupportPage({ searchParams }: Props) {
           Найти
         </button>
         <span style={{ display: 'inline-flex', gap: 8, marginLeft: 8 }}>
-          <Link className={unreadOnly ? 'sortBtn' : 'adminBtn'} href={withQuery({})}>
+          <Link
+            className={`filterChip${unreadOnly ? '' : ' filterChipOn'}`}
+            aria-current={unreadOnly ? undefined : 'page'}
+            href={withQuery({})}>
             Все
           </Link>
           <Link
-            className={unreadOnly ? 'adminBtn' : 'sortBtn'}
+            className={`filterChip${unreadOnly ? ' filterChipOn' : ''}`}
+            aria-current={unreadOnly ? 'page' : undefined}
             href={withQuery({ filter: 'unread' })}>
             Непрочитанные
           </Link>

@@ -299,6 +299,35 @@
 .sortBtn:hover:not(:disabled) { border-color: #fd4f61; color: #fd4f61; }
 .sortBtn:disabled { opacity: 0.35; cursor: default; }
 
+/* Переключатель фильтра списка (ссылка-таблетка, «Все» / «Непрочитанные»).
+   Отдельный класс, потому что .sortBtn — иконочная кнопка ФИКСИРОВАННЫХ 32×32
+   (стрелки порядка): текстовая подпись из неё вываливалась и наезжала на соседа. */
+.filterChip {
+  font: inherit;
+  font-weight: 800;
+  font-size: 13.5px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 10px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  color: #3b2c2a;
+  background: #fff;
+  border: 1.5px solid #eadfd8;
+}
+.filterChip:hover { border-color: #fd4f61; color: #fd4f61; }
+.filterChipOn {
+  color: #fff;
+  background: #fd4f61;
+  border-color: #fd4f61;
+  box-shadow: 0 10px 20px -10px rgba(253, 79, 97, 0.6);
+}
+.filterChipOn:hover { color: #fff; opacity: 0.92; }
+
 /* Подборки вопросов: селект/textarea в формах, карточки вопросов. */
 .adminForm select,
 .adminForm textarea {
