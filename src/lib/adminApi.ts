@@ -109,10 +109,11 @@ export function verifyAdminPassword(password: unknown): boolean {
 // Сам лимитер живёт в чистом модуле (тестируется node:test); реэкспорт — чтобы
 // страница логина брала всё из '@/lib/adminApi', как и раньше.
 export {
-  loginRateLimited,
+  evaluateLogin,
   clearLoginAttempts,
   loginFailDelay,
   LOGIN_LIMITS,
+  type LoginOutcome,
 } from './loginRateLimit';
 
 export async function isAdminAuthed(): Promise<boolean> {

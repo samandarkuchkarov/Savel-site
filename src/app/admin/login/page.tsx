@@ -3,10 +3,9 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import {
   ADMIN_COOKIE,
-  clearLoginAttempts,
+  evaluateLogin,
   issueAdminSession,
   loginFailDelay,
-  loginRateLimited,
   verifyAdminPassword,
 } from '@/lib/adminApi';
 import { clientIp } from '@/lib/clientIp';
@@ -21,13 +20,15 @@ async function login(formData: FormData) {
   'use server';
   // Ключ лимита — IP из ДОВЕРЕННОЙ части X-Forwarded-For (общий clientIp()):
   // Caddy дописывает реальный адрес СПРАВА, а левые записи подделывает клиент.
-  // Раньше здесь брали `.split(',')[0]` — атакующий слал новый фейковый первый
-  // IP на каждом запросе, получал свежее окно и перебирал пароль без лимита.
   // null (нет XFF / мусор) → один общий ключ: fail-closed, не лазейка.
   const ip = (await clientIp()) ?? 'unknown';
-  if (loginRateLimited(ip)) redirect('/admin/login?error=rate');
-  if (verifyAdminPassword(formData.get('password'))) {
-    clearLoginAttempts(ip);
+
+  // Пароль проверяем ПЕРВЫМ и передаём результат в лимитер: верный пароль всегда
+  // даёт 'ok' и логинит немедленно, не глядя на счётчики. Иначе флуд неверных
+  // POST'ов выбивал бы глобальный кап и запирал настоящего админа (DoS). Счётчики
+  // трогают только неудачные попытки (evaluateLogin).
+  const outcome = evaluateLogin(verifyAdminPassword(formData.get('password')), ip);
+  if (outcome === 'ok') {
     const jar = await cookies();
     jar.set(ADMIN_COOKIE, issueAdminSession(), {
       httpOnly: true,
@@ -40,9 +41,11 @@ async function login(formData: FormData) {
     });
     redirect('/admin');
   }
-  // Пауза только на неверном пароле (redirect() бросает — ставим ДО него).
-  await loginFailDelay();
-  redirect('/admin/login?error=1');
+  // Неверный пароль. 'wrong' — обычная попытка (тормозим паузой, режем перебор);
+  // 'rate' — лимит исчерпан, быстрый отказ без задержки (не держим коннект во
+  // время флуда). redirect() бросает — задержку ставим ДО него.
+  if (outcome === 'wrong') await loginFailDelay();
+  redirect(outcome === 'rate' ? '/admin/login?error=rate' : '/admin/login?error=1');
 }
 
 export default async function AdminLoginPage({
