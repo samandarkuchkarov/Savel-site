@@ -85,13 +85,9 @@ export default function AdminNav({
       </div>
       {GROUPS.map(group => (
         <div className="navGroup" key={group.title || 'root'}>
-          {/* Подпись группы — не ссылка и не кнопка: по ней некуда вести.
-              aria-hidden, потому что связь с ссылками даёт сам список. */}
-          {group.title ? (
-            <span className="navGroupTitle" aria-hidden="true">
-              {group.title}
-            </span>
-          ) : null}
+          {/* Название группы — только для скринридера. Видимые подписи над
+              каждой группой рвали строку и оставляли дыры при переносе;
+              глазу достаточно разделителя, а озвучке нужно слово. */}
           <ul className="navGroupItems" aria-label={group.title || undefined}>
             {group.items.map(item => {
               const active = isActive(pathname, item.href);

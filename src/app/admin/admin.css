@@ -72,11 +72,14 @@
 .adminBrand span { background: var(--coral); color: #fff; border-radius: 8px; padding: 3px 9px; font-size: 11px; letter-spacing: 0.5px; }
 .adminNav a {
   font-weight: 800;
-  font-size: 14.5px;
+  font-size: 14px;
   color: var(--text-muted);
   text-decoration: none;
-  padding: 8px 14px;
+  /* Тесновато по горизонтали намеренно: 13 разделов в 1060px иначе уезжают
+     на третий ряд. */
+  padding: 8px 11px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 .adminNav a:hover { color: var(--coral); background: rgba(var(--coral-rgb), 0.08); }
 .adminNav form { margin-left: auto; }
@@ -619,19 +622,15 @@
 
 /* ── Меню: группы, подсветка текущего раздела и счётчик поддержки ───────── */
 
-/* Группы — колонки «подпись + ряд ссылок». Выравнивание по НИЗУ: у «Обзора»
-   подписи нет, и без flex-end его ссылка висела бы выше остальных. */
-.adminNav { align-items: flex-end; gap: 8px 20px; }
-.navGroup { display: flex; flex-direction: column; gap: 4px; }
-.navGroupTitle {
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  padding-left: 14px;
-}
-.navGroupItems { display: flex; flex-wrap: wrap; gap: 2px; margin: 0; padding: 0; list-style: none; }
+/* Группы разделяет РАССТОЯНИЕ, а не подписи и не черта.
+   Подписи сверху ломали строку и при переносе оставляли дыры; вертикальная
+   черта повисала в начале строки, если перенос приходился ровно на неё.
+   Пробел работает всегда: внутри группы ссылки почти слиплись, между группами
+   заметный зазор — глаз читает это как блоки. Названия групп остаются в
+   aria-label, поэтому озвучка ничего не теряет. */
+.adminNav { align-items: center; gap: 6px 24px; }
+.navGroup { display: flex; align-items: center; }
+.navGroupItems { display: flex; flex-wrap: wrap; gap: 1px; margin: 0; padding: 0; list-style: none; }
 
 /* 13 одинаковых ссылок не давали понять, где ты; активный раздел залит. */
 .adminNav a.adminNavOn { color: var(--coral); background: rgba(var(--coral-rgb), 0.12); }
