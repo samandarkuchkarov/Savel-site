@@ -231,7 +231,19 @@ export interface AdminTrend {
   deltas: Partial<Record<keyof AdminStats, AdminDelta>>;
   /** Старый сервер поля не шлёт — карточку расходов тогда просто не рисуем. */
   ai?: AdminAiSpend;
-  series: { date: string; users: number; couples: number }[];
+  series: {
+    date: string;
+    users: number;
+    couples: number;
+    /**
+     * Savel+ считается СОБЫТИЯМИ (подключения/отключения), а не числом
+     * подписчиков на каждый день: историю состояния восстановить нечем —
+     * подробности в комментарии к PLUS_GRANT_ACTIONS на сервере.
+     * Старый сервер полей не шлёт — второй график тогда не рисуем.
+     */
+    plus_granted?: number;
+    plus_revoked?: number;
+  }[];
 }
 
 export interface AdminUser {

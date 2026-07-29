@@ -9,38 +9,59 @@ import { useId, useState } from 'react';
  */
 
 /**
- * График новых пользователей и пар по дням.
+ * Дневной линейный график на две серии. Один компонент на все графики
+ * дашборда: копия этого файла ради второй пары линий разошлась бы с оригиналом
+ * при первой же правке.
  *
- * Одна ось: обе серии — это «сколько штук за день», одна и та же единица.
- * Две шкалы на одном полотне рисовали бы несуществующую связь между кривыми.
+ * Одна ось — потому что обе серии в КАЖДОМ графике меряются одним и тем же:
+ * «сколько штук за день». Две шкалы на одном полотне рисовали бы
+ * несуществующую связь между кривыми. Серии с разными единицами сюда класть
+ * нельзя — им нужен свой график.
  *
  * Цвета — коралловый бренда и фиолетовый; пара проверена валидатором палитры
  * на белой карточке (CVD ΔE 23.0 при пороге 8, обычное зрение 37.0 при
- * пороге 15, контраст обоих ≥ 3:1). Легенда есть всегда: различать серии
- * только по цвету нельзя.
+ * пороге 15, контраст обоих ≥ 3:1). Разным графикам разные палитры не нужны:
+ * рядом друг с другом их серии не сравнивают. Легенда есть всегда: различать
+ * серии только по цвету нельзя.
  */
 
-export interface TrendPoint {
-  date: string; // YYYY-MM-DD
-  users: number;
-  couples: number;
+/** Точка ряда: дата + произвольные числовые поля, которые выберет график. */
+export type TrendPoint = { date: string } & Record<string, number | string>;
+
+export interface SeriesSpec {
+  /** Поле в точке ряда. */
+  key: string;
+  label: string;
+  color: string;
+  /** Формы для тултипа: 1 / 2–4 / 5+ («подключение», «подключения», «подключений»). */
+  forms: readonly [string, string, string];
 }
 
-const SERIES = [
+/** Готовые наборы серий — чтобы страницы не собирали их вручную. */
+export const USERS_SERIES: SeriesSpec[] = [
   {
-    key: 'users' as const,
+    key: 'users',
     label: 'Пользователи',
     // Значения — в admin.css (--chart-a/--chart-b); пара проверена валидатором
     // и менять её можно только целиком, с повторной проверкой.
     color: 'var(--chart-a)',
-    // Формы для тултипа: «1 пользователь», «2 пользователя», «5 пользователей».
-    forms: ['пользователь', 'пользователя', 'пользователей'] as const,
+    forms: ['пользователь', 'пользователя', 'пользователей'],
+  },
+  { key: 'couples', label: 'Пары', color: 'var(--chart-b)', forms: ['пара', 'пары', 'пар'] },
+];
+
+export const PLUS_SERIES: SeriesSpec[] = [
+  {
+    key: 'plus_granted',
+    label: 'Подключения',
+    color: 'var(--chart-a)',
+    forms: ['подключение', 'подключения', 'подключений'],
   },
   {
-    key: 'couples' as const,
-    label: 'Пары',
+    key: 'plus_revoked',
+    label: 'Отключения',
     color: 'var(--chart-b)',
-    forms: ['пара', 'пары', 'пар'] as const,
+    forms: ['отключение', 'отключения', 'отключений'],
   },
 ];
 
@@ -85,7 +106,15 @@ function longDate(iso: string): string {
   return `${d} ${MONTHS[(m ?? 1) - 1]} ${y}`;
 }
 
-export default function TrendChart({ series }: { series: TrendPoint[] }) {
+export default function TrendChart({
+  series,
+  specs,
+  title,
+}: {
+  series: TrendPoint[];
+  specs: SeriesSpec[];
+  title: string;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   const clipId = useId();
 
@@ -93,14 +122,17 @@ export default function TrendChart({ series }: { series: TrendPoint[] }) {
     return <p className="adminSub">Данных для графика пока нет.</p>;
   }
 
-  const peak = Math.max(...series.flatMap(p => [p.users, p.couples]));
+  const at = (p: TrendPoint, key: string) => Number(p[key] ?? 0);
+  const peak = Math.max(...series.flatMap(p => specs.map(s => at(p, s.key))));
   const yMax = niceMax(peak);
   const stepX = PLOT_W / (series.length - 1);
   const x = (i: number) => PAD.left + i * stepX;
   const y = (v: number) => PAD.top + PLOT_H - (v / yMax) * PLOT_H;
 
-  const path = (key: 'users' | 'couples') =>
-    series.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p[key]).toFixed(1)}`).join(' ');
+  const path = (key: string) =>
+    series
+      .map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(at(p, key)).toFixed(1)}`)
+      .join(' ');
 
   // 4 линии сетки, круглые значения; они несут числа, которые не подписаны у точек.
   const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(yMax * f));
@@ -115,12 +147,12 @@ export default function TrendChart({ series }: { series: TrendPoint[] }) {
     <div className="trendCard">
       <div className="trendHead">
         <div>
-          <h2 className="trendTitle">Новые пользователи и пары</h2>
+          <h2 className="trendTitle">{title}</h2>
           <p className="trendSub">По дням за последние {series.length} дней</p>
         </div>
         {/* Легенда обязательна при двух сериях: идентичность не должна держаться на одном цвете. */}
         <ul className="trendLegend">
-          {SERIES.map(s => (
+          {specs.map(s => (
             <li key={s.key}>
               <span className="trendKey" style={{ background: s.color }} aria-hidden="true" />
               {s.label}
@@ -134,7 +166,7 @@ export default function TrendChart({ series }: { series: TrendPoint[] }) {
           viewBox={`0 0 ${W} ${H}`}
           className="trendSvg"
           role="img"
-          aria-label={`График: новые пользователи и пары по дням за ${series.length} дней. Значения доступны в таблице под графиком.`}>
+          aria-label={`График «${title}» по дням за ${series.length} дней. Значения доступны в таблице под графиком.`}>
           <defs>
             <clipPath id={clipId}>
               <rect x={PAD.left} y={PAD.top} width={PLOT_W} height={PLOT_H} />
@@ -180,7 +212,7 @@ export default function TrendChart({ series }: { series: TrendPoint[] }) {
           ) : null}
 
           <g clipPath={`url(#${clipId})`}>
-            {SERIES.map(s => (
+            {specs.map(s => (
               <path
                 key={s.key}
                 d={path(s.key)}
@@ -195,14 +227,14 @@ export default function TrendChart({ series }: { series: TrendPoint[] }) {
 
           {/* Точка на конце каждой серии + точки под курсором. Кольцо цветом
               поверхности держит их читаемыми там, где линии пересекаются. */}
-          {SERIES.map(s => {
+          {specs.map(s => {
             const last = series.length - 1;
             const marks = hover === null ? [last] : [...new Set([last, hover])];
             return marks.map(i => (
               <circle
                 key={`${s.key}-${i}`}
                 cx={x(i)}
-                cy={y(series[i]![s.key])}
+                cy={y(at(series[i]!, s.key))}
                 r="4.5"
                 style={{ fill: s.color }}
                 stroke="#fff"
@@ -225,7 +257,9 @@ export default function TrendChart({ series }: { series: TrendPoint[] }) {
               onBlur={() => setHover(null)}
               tabIndex={0}
               role="button"
-              aria-label={`${longDate(p.date)}: ${p.users} ${plural(p.users, SERIES[0]!.forms)}, ${p.couples} ${plural(p.couples, SERIES[1]!.forms)}`}
+              aria-label={`${longDate(p.date)}: ${specs
+                .map(s => `${at(p, s.key)} ${plural(at(p, s.key), s.forms)}`)
+                .join(', ')}`}
             />
           ))}
         </svg>
@@ -240,10 +274,10 @@ export default function TrendChart({ series }: { series: TrendPoint[] }) {
             }}
             role="status">
             <b>{longDate(active.date)}</b>
-            {SERIES.map(s => (
+            {specs.map(s => (
               <span key={s.key} className="trendTipRow">
                 <span className="trendTipKey" style={{ background: s.color }} aria-hidden="true" />
-                <b>{active[s.key]}</b> {plural(active[s.key], s.forms)}
+                <b>{at(active, s.key)}</b> {plural(at(active, s.key), s.forms)}
               </span>
             ))}
           </div>
@@ -259,16 +293,20 @@ export default function TrendChart({ series }: { series: TrendPoint[] }) {
             <thead>
               <tr>
                 <th>Дата</th>
-                <th>Пользователи</th>
-                <th>Пары</th>
+                {specs.map(s => (
+                  <th key={s.key}>{s.label}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {[...series].reverse().map(p => (
                 <tr key={p.date}>
                   <td>{longDate(p.date)}</td>
-                  <td className="numCell">{p.users}</td>
-                  <td className="numCell">{p.couples}</td>
+                  {specs.map(s => (
+                    <td key={s.key} className="numCell">
+                      {at(p, s.key)}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>

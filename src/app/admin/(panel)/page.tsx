@@ -7,7 +7,7 @@ import {
   type AdminTrend,
 } from '@/lib/adminApi';
 import AdminError from './AdminError';
-import TrendChart from './TrendChart';
+import TrendChart, { PLUS_SERIES, USERS_SERIES } from './TrendChart';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +53,9 @@ export default async function AdminDashboardPage() {
   }
 
   const waiting = stats.support_unread ?? 0;
+  // График Savel+ рисуем, только если сервер прислал поля: на старом сервере их
+  // нет, и пустой график из одних нулей выглядел бы как «подписок не бывает».
+  const plusChart = trend?.series.some(p => p.plus_granted !== undefined) ?? false;
 
   return (
     <>
@@ -131,7 +134,24 @@ export default async function AdminDashboardPage() {
         </section>
       ) : null}
 
-      {trend ? <TrendChart series={trend.series} /> : null}
+      {trend ? (
+        <TrendChart
+          title="Новые пользователи и пары"
+          series={trend.series}
+          specs={USERS_SERIES}
+        />
+      ) : null}
+
+      {/* Savel+ отдельным графиком, а не третьей линией в предыдущем: там
+          «сколько людей появилось», здесь «сколько раз подписку включили или
+          выключили». На одной оси эти величины сравнивать не с чем. */}
+      {plusChart ? (
+        <TrendChart
+          title="Подключения Savel+"
+          series={trend!.series}
+          specs={PLUS_SERIES}
+        />
+      ) : null}
     </>
   );
 }
