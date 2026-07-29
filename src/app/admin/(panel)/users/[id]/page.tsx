@@ -78,24 +78,30 @@ function CheckupChart({ you, partner }: { you: (number | null)[]; partner: (numb
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ maxWidth: 480 }} role="img" aria-label="График чек-апов">
         {[0, 50, 100].map(g => (
           <g key={g}>
-            <line x1={pad} x2={W - pad} y1={py(g)} y2={py(g)} stroke="#efe6e1" strokeWidth={1} />
-            <text x={2} y={py(g) + 3} fontSize={8} fill="#a6938e">
+            {/* Внутри <svg> цвет идёт через style: var() в презентационном
+                атрибуте не вычисляется и линия молча чернеет. */}
+            <line x1={pad} x2={W - pad} y1={py(g)} y2={py(g)} style={{ stroke: 'var(--divider)' }} strokeWidth={1} />
+            <text x={2} y={py(g) + 3} fontSize={8} style={{ fill: 'var(--text-hint)' }}>
               {g}
             </text>
           </g>
         ))}
-        <path d={path(partner)} fill="none" stroke="#e8718a" strokeWidth={2} />
-        <path d={path(you)} fill="none" stroke="#fd4f61" strokeWidth={2} />
+        <path d={path(partner)} fill="none" style={{ stroke: 'var(--chart-partner)' }} strokeWidth={2} />
+        <path d={path(you)} fill="none" style={{ stroke: 'var(--coral)' }} strokeWidth={2} />
         {partner.map((v, i) =>
-          v == null ? null : <circle key={`p${i}`} cx={px(i)} cy={py(v)} r={2.6} fill="#e8718a" />,
+          v == null ? null : (
+            <circle key={`p${i}`} cx={px(i)} cy={py(v)} r={2.6} style={{ fill: 'var(--chart-partner)' }} />
+          ),
         )}
         {you.map((v, i) =>
-          v == null ? null : <circle key={`y${i}`} cx={px(i)} cy={py(v)} r={2.6} fill="#fd4f61" />,
+          v == null ? null : (
+            <circle key={`y${i}`} cx={px(i)} cy={py(v)} r={2.6} style={{ fill: 'var(--coral)' }} />
+          ),
         )}
       </svg>
       <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 13, fontWeight: 700 }}>
-        <span style={{ color: '#fd4f61' }}>● Пользователь</span>
-        <span style={{ color: '#e8718a' }}>● Партнёр</span>
+        <span style={{ color: 'var(--coral)' }}>● Пользователь</span>
+        <span style={{ color: 'var(--chart-partner)' }}>● Партнёр</span>
       </div>
     </div>
   );
@@ -291,11 +297,11 @@ export default async function AdminUserPage({ params }: Props) {
                 }}>
                 <span className="pill pillMuted">{result.collectionTitle || 'Чек-ап'}</span>
                 <span className="pill pillCoral">{result.score} / 100</span>
-                <span style={{ marginLeft: 'auto', color: '#8b7d78', fontSize: 13 }}>
+                <span style={{ marginLeft: 'auto', color: 'var(--text-soft)', fontSize: 13 }}>
                   {dateTimeRu(result.createdAt)}
                 </span>
               </summary>
-              <div style={{ borderTop: '1px solid #efe6e1', padding: '10px 16px 14px' }}>
+              <div style={{ borderTop: '1px solid var(--divider)', padding: '10px 16px 14px' }}>
                 <ol
                   style={{
                     margin: 0,
@@ -311,7 +317,7 @@ export default async function AdminUserPage({ params }: Props) {
                         {answer.value} / 5
                       </span>
                       {answer.note ? (
-                        <div style={{ color: '#8b7d78', fontSize: 13, marginTop: 2 }}>
+                        <div style={{ color: 'var(--text-soft)', fontSize: 13, marginTop: 2 }}>
                           «{answer.note}»
                         </div>
                       ) : null}
@@ -351,13 +357,13 @@ export default async function AdminUserPage({ params }: Props) {
                   <td style={{ maxWidth: 260 }}>
                     {row.question_text}
                     {row.collection_title ? (
-                      <div style={{ color: '#8b7d78', fontSize: 12, marginTop: 2 }}>
+                      <div style={{ color: 'var(--text-soft)', fontSize: 12, marginTop: 2 }}>
                         {row.collection_title}
                       </div>
                     ) : null}
                   </td>
                   <td style={{ maxWidth: 240, fontWeight: 700 }}>{row.answer}</td>
-                  <td style={{ color: '#8b7d78' }}>{row.note ? `«${row.note}»` : '—'}</td>
+                  <td style={{ color: 'var(--text-soft)' }}>{row.note ? `«${row.note}»` : '—'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{dateTimeRu(row.created_at)}</td>
                 </tr>
               ))}

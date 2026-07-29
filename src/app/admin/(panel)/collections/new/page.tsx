@@ -2,23 +2,31 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { adminApi, adminUploadImage, type AdminCategory, type AdminCollection } from '@/lib/adminApi';
 import CollectionForm from '../CollectionForm';
+import { toFormError, type FormState } from '@/lib/formState';
 
 export const dynamic = 'force-dynamic';
 
-async function createCollection(formData: FormData) {
+async function createCollection(_prev: FormState, formData: FormData): Promise<FormState> {
   'use server';
-  const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
-  const categoryId = String(formData.get('categoryId') ?? '').trim();
-  const created = await adminApi<AdminCollection>('/collections', {
-    method: 'POST',
-    body: JSON.stringify({
-      title: String(formData.get('title') ?? '').trim(),
-      categoryId: categoryId || null,
-      imageUrl: uploadedImageUrl,
-      active: formData.get('active') === 'on',
-      plus: formData.get('plus') === 'on',
-    }),
-  });
+  // try — только вокруг работы; redirect ниже кидает NEXT_REDIRECT и внутри try
+  // был бы пойман как «ошибка сохранения».
+  let created: AdminCollection;
+  try {
+    const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
+    const categoryId = String(formData.get('categoryId') ?? '').trim();
+    created = await adminApi<AdminCollection>('/collections', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: String(formData.get('title') ?? '').trim(),
+        categoryId: categoryId || null,
+        imageUrl: uploadedImageUrl,
+        active: formData.get('active') === 'on',
+        plus: formData.get('plus') === 'on',
+      }),
+    });
+  } catch (e) {
+    return toFormError(e, formData);
+  }
   revalidatePath('/admin/collections');
   redirect(`/admin/collections/${created.id}`);
 }

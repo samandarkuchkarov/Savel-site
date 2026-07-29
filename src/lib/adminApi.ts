@@ -1,6 +1,7 @@
 import 'server-only';
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
+import { issueSession, readSession, sessionKey } from './adminSession';
 
 const API_URL = process.env.SAVEL_API_URL ?? 'http://localhost:4000';
 
@@ -19,6 +20,13 @@ async function assertAdmin(): Promise<void> {
   if (!(await isAdminAuthed())) throw new Error('unauthorized');
 }
 
+/**
+ * Таймзона админки. Запрос идёт сервер-к-серверу, поэтому зону браузера сервер
+ * не увидит — а «за сегодня» на дашборде обязано означать ташкентские сутки, а
+ * не UTC (иначе утренние регистрации до 05:00 попадают во «вчера»).
+ */
+export const ADMIN_TZ = 'Asia/Tashkent';
+
 /** Server-to-server call to Savel_server admin endpoints. */
 export async function adminApi<T>(path: string, init?: RequestInit): Promise<T> {
   await assertAdmin();
@@ -27,6 +35,7 @@ export async function adminApi<T>(path: string, init?: RequestInit): Promise<T> 
     headers: {
       'Content-Type': 'application/json',
       'X-Admin-Token': process.env.ADMIN_TOKEN ?? '',
+      'X-Timezone': ADMIN_TZ,
       ...init?.headers,
     },
     cache: 'no-store',
@@ -68,31 +77,31 @@ export async function adminUploadImage(file: FormDataEntryValue | null): Promise
 export const ADMIN_COOKIE = 'savel_admin';
 
 /**
- * Админ-сессии: СЛУЧАЙНЫЙ токен, выданный при логине, живёт в памяти процесса
- * (standalone-сборка — один процесс). Раньше cookie был статичным sha256(пароля):
- * утёкшее значение позволяло офлайн-перебор пароля, было одинаковым для всех
- * сессий и неотзываемым. Теперь в cookie нет ничего производного от пароля,
- * logout реально отзывает сессию, а рестарт сервиса сбрасывает все (админ
- * просто логинится заново).
+ * Админ-сессии: подписанный самодостаточный cookie (см. adminSession.ts).
  *
- * ⚠️ Требование: ОДИН постоянный процесс (systemd `savel-site` на VPS — так и
- * задеплоено, см. DEPLOY.md §6). Несколько реплик / PM2 cluster / serverless
- * несовместимы с Map — прежде чем масштабировать, перенесите сессии в
- * Postgres/Redis.
+ * Было — Map в памяти процесса: каждый деплой сайта перезапускал systemd-юнит
+ * `savel-site`, Map пустела, и админа выбрасывало на логин. Стало — HMAC-подпись
+ * от секретов сайта: перезапуск ничего не теряет, состояние на сервере не
+ * нужно, а несколько реплик перестали быть проблемой.
+ *
+ * Отзыв ОДНОЙ сессии больше не переживает перезапуск (отзывать нечему — сервер
+ * не хранит список выданных). Ниже — best-effort набор в памяти: выход из
+ * панели действует немедленно в текущем процессе. Настоящий рычаг «разлогинить
+ * везде и навсегда» — сменить ADMIN_PANEL_PASSWORD или ADMIN_TOKEN: ключ
+ * подписи выводится из них, и все старые cookie обесцениваются разом.
  */
-const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const adminSessions = new Map<string, number>(); // token → expiresAt (ms)
+const revokedNonces = new Set<string>();
 
 export function issueAdminSession(): string {
-  const now = Date.now();
-  for (const [t, exp] of adminSessions) if (exp <= now) adminSessions.delete(t); // не копим протухшие
-  const token = randomBytes(32).toString('hex');
-  adminSessions.set(token, now + SESSION_TTL_MS);
-  return token;
+  const key = sessionKey();
+  // Без секретов сессию не выдаём: подпись пустым ключом подделывается кем угодно.
+  if (!key) throw new Error('ADMIN_TOKEN/ADMIN_PANEL_PASSWORD не заданы — вход невозможен');
+  return issueSession(key);
 }
 
 export function revokeAdminSession(token: string | undefined): void {
-  if (token) adminSessions.delete(token);
+  const claims = readSession(token, sessionKey());
+  if (claims) revokedNonces.add(claims.nonce);
 }
 
 /** Сравнение пароля без утечки по времени (хэшируем обе стороны до равной длины). */
@@ -118,15 +127,9 @@ export {
 
 export async function isAdminAuthed(): Promise<boolean> {
   const jar = await cookies();
-  const token = jar.get(ADMIN_COOKIE)?.value;
-  if (!token) return false;
-  const expiresAt = adminSessions.get(token);
-  if (!expiresAt) return false;
-  if (expiresAt <= Date.now()) {
-    adminSessions.delete(token);
-    return false;
-  }
-  return true;
+  const claims = readSession(jar.get(ADMIN_COOKIE)?.value, sessionKey());
+  if (!claims) return false;
+  return !revokedNonces.has(claims.nonce);
 }
 
 /* ── Types mirroring the admin API ── */
@@ -201,6 +204,34 @@ export interface AdminStats {
   chat_messages: number;
   boost_activities: number;
   savel_plus: number;
+  /** Диалогов поддержки, ждущих ответа (бейдж в меню). Старый сервер его не шлёт. */
+  support_unread?: number;
+}
+
+/** Прирост метрики за период (только у потоковых — у которых есть created_at). */
+export interface AdminDelta {
+  today: number;
+  week: number;
+}
+
+/** Сводка расходов на ИИ в долларах. «Месяц» — календарный, в зоне админа. */
+export interface AdminAiSpend {
+  today: number;
+  week: number;
+  month: number;
+  total: number;
+  tokens_month: number;
+}
+
+/** Ответ /admin/stats/trend: прирост карточек + дневной ряд для графика. */
+export interface AdminTrend {
+  /** Таймзона, в которой сервер считал «сегодня» (см. ADMIN_TZ). */
+  tz: string;
+  days: number;
+  deltas: Partial<Record<keyof AdminStats, AdminDelta>>;
+  /** Старый сервер поля не шлёт — карточку расходов тогда просто не рисуем. */
+  ai?: AdminAiSpend;
+  series: { date: string; users: number; couples: number }[];
 }
 
 export interface AdminUser {

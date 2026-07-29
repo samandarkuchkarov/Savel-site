@@ -1,4 +1,6 @@
 import type { AdminBoostRecommendation } from '@/lib/adminApi';
+import type { FormState } from '@/lib/formState';
+import AdminForm, { SubmitButton } from '../AdminForm';
 
 const KIND_LABELS: Record<AdminBoostRecommendation['kind'], string> = {
   challenge: 'Челлендж',
@@ -16,12 +18,12 @@ export default function BoostRecForm({
   submitLabel,
   initial,
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: (prev: FormState, formData: FormData) => Promise<FormState>;
   submitLabel: string;
   initial?: AdminBoostRecommendation;
 }) {
   return (
-    <form action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm adminForm">
       {initial ? (
         <label>
           <span>Вид</span>
@@ -54,9 +56,7 @@ export default function BoostRecForm({
         <span>Описание (подставляется в создание активности)</span>
         <textarea name="description" defaultValue={initial?.description ?? ''} maxLength={300} rows={3} />
       </label>
-      <button className="adminBtn" type="submit">
-        {submitLabel}
-      </button>
-    </form>
+      <SubmitButton>{submitLabel}</SubmitButton>
+    </AdminForm>
   );
 }

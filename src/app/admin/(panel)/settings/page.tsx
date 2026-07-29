@@ -1,6 +1,8 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { adminApi, type AdminPricing } from '@/lib/adminApi';
+import { formError, toFormError, type FormState } from '@/lib/formState';
+import AdminForm, { SubmitButton } from '../AdminForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,12 +13,12 @@ export const dynamic = 'force-dynamic';
  * несогласованные цифры показать невозможно.
  */
 
-async function savePricing(formData: FormData) {
+async function savePricing(_prev: FormState, formData: FormData): Promise<FormState> {
   'use server';
   const monthUsd = Number(String(formData.get('monthUsd') ?? '').replace(',', '.'));
   const yearUsd = Number(String(formData.get('yearUsd') ?? '').replace(',', '.'));
   if (!Number.isFinite(monthUsd) || monthUsd <= 0 || !Number.isFinite(yearUsd) || yearUsd <= 0) {
-    redirect('/admin/settings?error=' + encodeURIComponent('Введите положительные числа'));
+    return formError('Введите положительные числа', formData);
   }
   try {
     await adminApi('/settings/pricing', {
@@ -25,8 +27,7 @@ async function savePricing(formData: FormData) {
     });
   } catch (error) {
     // Показываем ЧЕЛОВЕЧЕСКУЮ причину (валидация API), а не «Application error».
-    const message = error instanceof Error ? error.message : 'Не удалось сохранить';
-    redirect('/admin/settings?error=' + encodeURIComponent(message));
+    return toFormError(error, formData);
   }
   revalidatePath('/admin/settings');
   redirect('/admin/settings?saved=1');
@@ -60,7 +61,7 @@ export default async function SettingsPage({
       ) : (
         <>
           <h2 className="adminH2">Цены Savel+</h2>
-          <form action={savePricing} className="adminForm" style={{ alignItems: 'flex-end' }}>
+          <AdminForm action={savePricing} className="adminForm settingsPriceForm">
             <label className="fieldCol">
               <span>Месяц, $</span>
               <input
@@ -83,10 +84,8 @@ export default async function SettingsPage({
                 defaultValue={pricing.yearUsd}
               />
             </label>
-            <button className="adminBtn" type="submit">
-              Сохранить
-            </button>
-          </form>
+            <SubmitButton>Сохранить</SubmitButton>
+          </AdminForm>
 
           <h2 className="adminH2" style={{ marginTop: 26 }}>
             Как это увидит пользователь

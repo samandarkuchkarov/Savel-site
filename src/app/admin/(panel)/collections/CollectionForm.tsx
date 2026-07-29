@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { adminAssetUrl, type AdminCategory, type AdminCollection } from '@/lib/adminApi';
 import ConfirmButton from '../ConfirmButton';
+import type { FormState } from '@/lib/formState';
+import AdminForm, { SubmitButton } from '../AdminForm';
 
 type Props = {
   collection?: AdminCollection;
   categories: AdminCategory[];
-  action: (formData: FormData) => Promise<void>;
+  action: (prev: FormState, formData: FormData) => Promise<FormState>;
   deleteAction?: (formData: FormData) => Promise<void>;
   submitLabel: string;
 };
@@ -22,7 +24,7 @@ export default function CollectionForm({
   const previewUrl = adminAssetUrl(imageUrl);
 
   return (
-    <form action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm adminForm">
       {collection ? <input type="hidden" name="id" value={collection.id} /> : null}
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
@@ -80,9 +82,7 @@ export default function CollectionForm({
       </div>
 
       <div className="categoryEditActions">
-        <button className="adminBtn" type="submit">
-          {submitLabel}
-        </button>
+        <SubmitButton>{submitLabel}</SubmitButton>
         <Link className="adminGhostLink" href="/admin/collections">
           Отмена
         </Link>
@@ -97,6 +97,6 @@ export default function CollectionForm({
           </ConfirmButton>
         ) : null}
       </div>
-    </form>
+    </AdminForm>
   );
 }

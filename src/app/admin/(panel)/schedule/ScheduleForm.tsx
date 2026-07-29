@@ -5,12 +5,14 @@ import type {
   AdminCollection,
   AdminScheduleInterval,
 } from '@/lib/adminApi';
+import type { FormState } from '@/lib/formState';
+import AdminForm, { SubmitButton } from '../AdminForm';
 
 type Props = {
   interval?: AdminScheduleInterval;
   questionCollections: AdminCollection[];
   checkupCollections: AdminCheckupCollection[];
-  action: (formData: FormData) => Promise<void>;
+  action: (prev: FormState, formData: FormData) => Promise<FormState>;
   deleteAction?: (formData: FormData) => Promise<void>;
   submitLabel: string;
   /** Фаза интервала — управляет предупреждением и режимом «только чтение». */
@@ -51,7 +53,7 @@ export default function ScheduleForm({
     c => usable(c) || c.id === interval?.checkup_collection_id,
   );
   return (
-    <form action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm adminForm">
       {interval ? <input type="hidden" name="id" value={interval.id} /> : null}
 
       {phase === 'active' ? (
@@ -59,8 +61,8 @@ export default function ScheduleForm({
           role="alert"
           style={{
             background: '#fff4e5',
-            border: '1px solid #f2c98a',
-            color: '#8a5a12',
+            border: '1px solid var(--warning-border)',
+            color: 'var(--warning-ink-strong)',
             borderRadius: 10,
             padding: '10px 13px',
             fontSize: 13,
@@ -77,9 +79,9 @@ export default function ScheduleForm({
         <div
           role="alert"
           style={{
-            background: '#f3eee9',
-            border: '1px solid #ded2c8',
-            color: '#6f6157',
+            background: 'var(--tint-neutral)',
+            border: '1px solid var(--border-neutral)',
+            color: 'var(--text-neutral)',
             borderRadius: 10,
             padding: '10px 13px',
             fontSize: 13,
@@ -128,9 +130,7 @@ export default function ScheduleForm({
       </label>
 
       <div className="categoryEditActions">
-        <button className="adminBtn" type="submit">
-          {submitLabel}
-        </button>
+        <SubmitButton>{submitLabel}</SubmitButton>
         <Link className="adminGhostLink" href="/admin/schedule">
           Отмена
         </Link>
@@ -151,6 +151,6 @@ export default function ScheduleForm({
           </ConfirmButton>
         ) : null}
       </div>
-    </form>
+    </AdminForm>
   );
 }

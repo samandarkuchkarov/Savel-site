@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { adminApi, type AdminBoostRecommendation } from '@/lib/adminApi';
+import { toFormError, type FormState } from '@/lib/formState';
 import BoostRecForm from '../BoostRecForm';
 
 export const dynamic = 'force-dynamic';
@@ -17,17 +18,21 @@ export default async function EditBoostRecPage({ params }: { params: Promise<{ i
   }
   if (!rec) notFound();
 
-  async function updateRec(formData: FormData) {
+  async function updateRec(_prev: FormState, formData: FormData): Promise<FormState> {
     'use server';
-    await adminApi(`/boost-recommendations/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        title: String(formData.get('title') ?? '').trim(),
-        subtitle: String(formData.get('subtitle') ?? '').trim() || null,
-        description: String(formData.get('description') ?? '').trim() || null,
-        emoji: String(formData.get('emoji') ?? '').trim() || null,
-      }),
-    });
+    try {
+      await adminApi(`/boost-recommendations/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          title: String(formData.get('title') ?? '').trim(),
+          subtitle: String(formData.get('subtitle') ?? '').trim() || null,
+          description: String(formData.get('description') ?? '').trim() || null,
+          emoji: String(formData.get('emoji') ?? '').trim() || null,
+        }),
+      });
+    } catch (e) {
+      return toFormError(e, formData);
+    }
     revalidatePath('/admin/boost');
     redirect('/admin/boost');
   }

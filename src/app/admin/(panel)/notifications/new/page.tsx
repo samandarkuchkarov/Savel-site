@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { adminApi, adminUploadNotificationImage } from '@/lib/adminApi';
+import { toFormError, type FormState } from '@/lib/formState';
 import NotificationForm from '../NotificationForm';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,7 @@ function toScheduledAt(raw: FormDataEntryValue | null): string | null {
   return value ? `${value}:00+05:00` : null;
 }
 
-async function createNotification(formData: FormData) {
+async function createNotification(_prev: FormState, formData: FormData): Promise<FormState> {
   'use server';
   try {
     const imageUrl = await adminUploadNotificationImage(formData.get('imageFile'));
@@ -25,26 +26,21 @@ async function createNotification(formData: FormData) {
       }),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Не удалось создать рассылку';
-    redirect('/admin/notifications/new?error=' + encodeURIComponent(message));
+    // Текст рассылки — самое дорогое, что тут набирают руками; ошибку
+    // показываем НАД формой, а не редиректом, который его стирал.
+    return toFormError(error, formData);
   }
   revalidatePath('/admin/notifications');
   redirect('/admin/notifications?saved=1');
 }
 
-export default async function NewNotificationPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const { error } = await searchParams;
+export default function NewNotificationPage() {
   return (
     <>
       <h1 className="adminH1">Новая рассылка</h1>
       <p className="adminSub">
         Пустое время — уйдёт сразу после создания; с временем — точно в указанный момент (Ташкент).
       </p>
-      {error ? <p className="loginError">{error}</p> : null}
       <NotificationForm action={createNotification} submitLabel="Создать" />
     </>
   );

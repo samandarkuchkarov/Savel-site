@@ -8,6 +8,7 @@ import {
   type AdminCategory,
   type AdminCollection,
 } from '@/lib/adminApi';
+import { toFormError, type FormState } from '@/lib/formState';
 import CategoryForm from '../CategoryForm';
 
 export const dynamic = 'force-dynamic';
@@ -16,21 +17,26 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-async function saveCategory(formData: FormData) {
+async function saveCategory(_prev: FormState, formData: FormData): Promise<FormState> {
   'use server';
   const id = String(formData.get('id'));
-  const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
-  const currentImageUrl = String(formData.get('imageUrl') ?? '').trim() || null;
-  await adminApi(`/categories/${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    body: JSON.stringify({
-      title: String(formData.get('title') ?? '').trim(),
-      subtitle: String(formData.get('subtitle') ?? '').trim(),
-      imageUrl: uploadedImageUrl ?? currentImageUrl,
-      sort: Number(formData.get('sort') ?? 0),
-      active: formData.get('active') === 'on',
-    }),
-  });
+  // try — только вокруг работы; redirect ниже кидает NEXT_REDIRECT.
+  try {
+    const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
+    const currentImageUrl = String(formData.get('imageUrl') ?? '').trim() || null;
+    await adminApi(`/categories/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        title: String(formData.get('title') ?? '').trim(),
+        subtitle: String(formData.get('subtitle') ?? '').trim(),
+        imageUrl: uploadedImageUrl ?? currentImageUrl,
+        sort: Number(formData.get('sort') ?? 0),
+        active: formData.get('active') === 'on',
+      }),
+    });
+  } catch (e) {
+    return toFormError(e, formData);
+  }
   revalidatePath('/admin/categories');
   redirect('/admin/categories');
 }

@@ -83,13 +83,13 @@ export default async function AdminBoostPage() {
                   <tbody>
                     {items.map((rec, index) => (
                       <tr key={rec.id}>
-                        <td style={{ color: index < 3 ? '#2fbe7e' : '#8b7d78' }}>
+                        <td style={{ color: index < 3 ? 'var(--success-bright)' : 'var(--text-soft)' }}>
                           {index + 1}
                           {index < 3 ? ' · free' : ''}
                         </td>
                         <td style={{ fontSize: 20 }}>{rec.emoji ?? '—'}</td>
                         <td>{rec.title}</td>
-                        <td style={{ color: '#8b7d78' }}>{rec.subtitle ?? '—'}</td>
+                        <td style={{ color: 'var(--text-soft)' }}>{rec.subtitle ?? '—'}</td>
                         <td>
                           <form action={moveRec} className="sortCell">
                             <input type="hidden" name="id" value={rec.id} />
@@ -135,7 +135,7 @@ export default async function AdminBoostPage() {
                     ))}
                     {items.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ color: '#8b7d78' }}>
+                        <td colSpan={6} style={{ color: 'var(--text-soft)' }}>
                           Пока пусто — добавьте первую.
                         </td>
                       </tr>

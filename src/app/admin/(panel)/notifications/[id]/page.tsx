@@ -7,6 +7,7 @@ import {
   adminUploadNotificationImage,
   type AdminNotification,
 } from '@/lib/adminApi';
+import { toFormError, type FormState } from '@/lib/formState';
 import NotificationForm from '../NotificationForm';
 import ConfirmButton from '../../ConfirmButton';
 
@@ -14,6 +15,8 @@ export const dynamic = 'force-dynamic';
 
 type Props = {
   params: Promise<{ id: string }>;
+  /** Ошибка УДАЛЕНИЯ: там нечего терять, поэтому оно по-прежнему редиректит с ?error=
+   *  (у сохранения ошибка приходит состоянием формы и введённое не пропадает). */
   searchParams: Promise<{ error?: string }>;
 };
 
@@ -22,7 +25,7 @@ function toScheduledAt(raw: FormDataEntryValue | null): string | null {
   return value ? `${value}:00+05:00` : null;
 }
 
-async function saveNotification(formData: FormData) {
+async function saveNotification(_prev: FormState, formData: FormData): Promise<FormState> {
   'use server';
   const id = String(formData.get('id'));
   try {
@@ -39,8 +42,8 @@ async function saveNotification(formData: FormData) {
       }),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Не удалось сохранить';
-    redirect(`/admin/notifications/${id}?error=` + encodeURIComponent(message));
+    // Ошибку показываем НАД формой; redirect на ?error= стирал набранный текст.
+    return toFormError(error, formData);
   }
   revalidatePath('/admin/notifications');
   redirect('/admin/notifications?saved=1');

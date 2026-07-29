@@ -124,7 +124,7 @@ export default async function AdminCollectionsPage() {
               ))}
               {collections.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ color: '#8b7d78' }}>
+                  <td colSpan={7} style={{ color: 'var(--text-soft)' }}>
                     Пока нет ни одной подборки — создайте первую.
                   </td>
                 </tr>

@@ -70,7 +70,7 @@ export default async function AdminSupportThreadPage({ params }: Props) {
           <h1 className="adminH1" style={{ margin: 0 }}>
             {thread.user_name || 'Без имени'}
           </h1>
-          <div style={{ color: '#8b7d78', fontWeight: 600, fontSize: 13 }}>
+          <div style={{ color: 'var(--text-soft)', fontWeight: 600, fontSize: 13 }}>
             {thread.user_email || 'без email'}
           </div>
         </div>

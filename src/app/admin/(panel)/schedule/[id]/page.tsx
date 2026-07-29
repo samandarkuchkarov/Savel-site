@@ -6,16 +6,19 @@ import {
   type AdminCollection,
   type AdminScheduleInterval,
 } from '@/lib/adminApi';
+import { toFormError, type FormState } from '@/lib/formState';
 import ScheduleForm from '../ScheduleForm';
 
 export const dynamic = 'force-dynamic';
 
 type Props = {
   params: Promise<{ id: string }>;
+  /** Ошибка УДАЛЕНИЯ: там нечего терять, поэтому оно по-прежнему редиректит с ?error=
+   *  (у сохранения ошибка приходит состоянием формы и введённое не пропадает). */
   searchParams: Promise<{ error?: string }>;
 };
 
-async function saveInterval(formData: FormData) {
+async function saveInterval(_prev: FormState, formData: FormData): Promise<FormState> {
   'use server';
   const id = String(formData.get('id'));
   const questionCollectionId = String(formData.get('questionCollectionId') ?? '').trim();
@@ -31,10 +34,9 @@ async function saveInterval(formData: FormData) {
       }),
     });
   } catch (error) {
-    // Осмысленные отказы API (пересечение дат, пустая/неактивная подборка) должны
-    // дойти до админа, а не растворяться в генерик-странице ошибки.
-    const message = error instanceof Error ? error.message : 'Не удалось сохранить';
-    redirect(`/admin/schedule/${id}?error=` + encodeURIComponent(message));
+    // Осмысленные отказы API (пересечение дат, пустая/неактивная подборка)
+    // показываем НАД формой — redirect на ?error= сбрасывал введённое.
+    return toFormError(error, formData);
   }
   revalidatePath('/admin/schedule');
   redirect('/admin/schedule');

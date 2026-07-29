@@ -125,7 +125,7 @@ export default async function SubscriptionsPage() {
                   <td>{sub.user_name || sub.user_email || '—'}</td>
                   <td>{PROVIDER_RU[sub.provider] ?? sub.provider}</td>
                   <td>{sub.product_id}</td>
-                  <td style={{ color: sub.active ? '#1f9962' : '#a6938e' }}>
+                  <td style={{ color: sub.active ? 'var(--success-dark)' : 'var(--text-hint)' }}>
                     {STATUS_RU[sub.status] ?? sub.status}
                     {sub.active ? ' ✓' : ''}
                   </td>

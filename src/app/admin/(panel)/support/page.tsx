@@ -5,6 +5,7 @@ import {
   type AdminPage,
   type AdminSupportThread,
 } from '@/lib/adminApi';
+import { DEFAULT_LIMIT, parseLimit } from '@/lib/listPaging';
 import Pagination from '../Pagination';
 
 export const dynamic = 'force-dynamic';
@@ -14,19 +15,22 @@ function dateTimeRu(iso: string | null): string {
   return new Date(iso).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
 }
 
-type Props = { searchParams: Promise<{ page?: string; q?: string; filter?: string }> };
+type Props = {
+  searchParams: Promise<{ page?: string; q?: string; filter?: string; limit?: string }>;
+};
 
 /** Список support-диалогов: поиск по имени/email, фильтр непрочитанных, свежие сверху. */
 export default async function AdminSupportPage({ searchParams }: Props) {
-  const { page: pageParam, q, filter } = await searchParams;
+  const { page: pageParam, q, filter, limit: limitParam } = await searchParams;
   const page = Math.max(Number(pageParam) || 1, 1);
+  const limit = parseLimit(limitParam);
   const unreadOnly = filter === 'unread';
   const query = (q ?? '').trim();
 
   let data: AdminPage<AdminSupportThread> | null = null;
   let error: string | null = null;
   try {
-    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
     if (query) params.set('q', query);
     if (unreadOnly) params.set('filter', 'unread');
     data = await adminApi<AdminPage<AdminSupportThread>>(`/support/threads?${params}`);
@@ -34,11 +38,22 @@ export default async function AdminSupportPage({ searchParams }: Props) {
     error = e instanceof Error ? e.message : 'API недоступен';
   }
 
-  // Базовый query для ссылок фильтров/пагинации — поиск не теряется при переходах.
+  // Базовый query для ссылок фильтров — поиск не теряется при переходах.
   const withQuery = (extra: Record<string, string>) => {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     for (const [key, value] of Object.entries(extra)) if (value) params.set(key, value);
+    const s = params.toString();
+    return `/admin/support${s ? `?${s}` : ''}`;
+  };
+
+  /** Ссылка пагинации: несёт и поиск, и активный фильтр — иначе они теряются. */
+  const pagerHref = (toPage: number, toLimit: number) => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (unreadOnly) params.set('filter', 'unread');
+    if (toPage > 1) params.set('page', String(toPage));
+    if (toLimit !== DEFAULT_LIMIT) params.set('limit', String(toLimit));
     const s = params.toString();
     return `/admin/support${s ? `?${s}` : ''}`;
   };
@@ -54,6 +69,7 @@ export default async function AdminSupportPage({ searchParams }: Props) {
       <form className="adminForm" action="/admin/support" method="get" style={{ marginBottom: 14 }}>
         <input type="text" name="q" placeholder="Поиск по имени или email" defaultValue={query} />
         {unreadOnly ? <input type="hidden" name="filter" value="unread" /> : null}
+        {limit !== DEFAULT_LIMIT ? <input type="hidden" name="limit" value={limit} /> : null}
         <button className="adminBtn" type="submit">
           Найти
         </button>
@@ -123,7 +139,7 @@ export default async function AdminSupportPage({ searchParams }: Props) {
                     </td>
                     <td>
                       <b>{thread.user_name || 'Без имени'}</b>
-                      <div style={{ color: '#8b7d78', fontSize: 12.5 }}>
+                      <div style={{ color: 'var(--text-soft)', fontSize: 12.5 }}>
                         {thread.user_email || 'без email'}
                       </div>
                     </td>
@@ -161,10 +177,11 @@ export default async function AdminSupportPage({ searchParams }: Props) {
             </table>
           </div>
           <Pagination
-            basePath={withQuery(unreadOnly ? { filter: 'unread' } : {})}
             page={data.page}
             limit={data.limit}
             total={data.total}
+            pageHref={p => pagerHref(p, limit)}
+            sizeHref={(l, p) => pagerHref(p, l)}
           />
         </>
       )}

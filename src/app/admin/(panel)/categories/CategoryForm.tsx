@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { adminAssetUrl, type AdminCategory } from '@/lib/adminApi';
+import type { FormState } from '@/lib/formState';
 import ConfirmButton from '../ConfirmButton';
+import AdminForm, { SubmitButton } from '../AdminForm';
 
 type Props = {
   category?: AdminCategory;
-  action: (formData: FormData) => Promise<void>;
+  action: (prev: FormState, formData: FormData) => Promise<FormState>;
   deleteAction?: (formData: FormData) => Promise<void>;
   submitLabel: string;
 };
@@ -14,7 +16,7 @@ export default function CategoryForm({ category, action, deleteAction, submitLab
   const previewUrl = adminAssetUrl(imageUrl);
 
   return (
-    <form action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm adminForm">
       {category ? <input type="hidden" name="id" value={category.id} /> : null}
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
@@ -71,9 +73,7 @@ export default function CategoryForm({ category, action, deleteAction, submitLab
       </div>
 
       <div className="categoryEditActions">
-        <button className="adminBtn" type="submit">
-          {submitLabel}
-        </button>
+        <SubmitButton>{submitLabel}</SubmitButton>
         <Link className="adminGhostLink" href="/admin/categories">
           Отмена
         </Link>
@@ -88,6 +88,6 @@ export default function CategoryForm({ category, action, deleteAction, submitLab
           </ConfirmButton>
         ) : null}
       </div>
-    </form>
+    </AdminForm>
   );
 }

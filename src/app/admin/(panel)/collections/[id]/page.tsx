@@ -6,6 +6,7 @@ import {
   type AdminCategory,
   type AdminCollectionDetail,
 } from '@/lib/adminApi';
+import { FORM_OK, toFormError, type FormState } from '@/lib/formState';
 import CollectionForm from '../CollectionForm';
 import ConfirmButton from '../../ConfirmButton';
 
@@ -24,24 +25,29 @@ function parseVariants(raw: FormDataEntryValue | null): string[] {
     .slice(0, 12);
 }
 
-async function saveCollection(formData: FormData) {
+async function saveCollection(_prev: FormState, formData: FormData): Promise<FormState> {
   'use server';
   const id = String(formData.get('id'));
-  const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
-  const currentImageUrl = String(formData.get('imageUrl') ?? '').trim() || null;
-  const categoryId = String(formData.get('categoryId') ?? '').trim();
-  await adminApi(`/collections/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify({
-      title: String(formData.get('title') ?? '').trim(),
-      categoryId: categoryId || null,
-      imageUrl: uploadedImageUrl ?? currentImageUrl,
-      active: formData.get('active') === 'on',
-      plus: formData.get('plus') === 'on',
-    }),
-  });
+  try {
+    const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
+    const currentImageUrl = String(formData.get('imageUrl') ?? '').trim() || null;
+    const categoryId = String(formData.get('categoryId') ?? '').trim();
+    await adminApi(`/collections/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        title: String(formData.get('title') ?? '').trim(),
+        categoryId: categoryId || null,
+        imageUrl: uploadedImageUrl ?? currentImageUrl,
+        active: formData.get('active') === 'on',
+        plus: formData.get('plus') === 'on',
+      }),
+    });
+  } catch (e) {
+    return toFormError(e, formData);
+  }
   revalidatePath('/admin/collections');
   revalidatePath(`/admin/collections/${id}`);
+  return FORM_OK;
 }
 
 async function deleteCollection(formData: FormData) {

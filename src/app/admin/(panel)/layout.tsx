@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { ADMIN_COOKIE, isAdminAuthed, revokeAdminSession } from '@/lib/adminApi';
+import { ADMIN_COOKIE, adminApi, isAdminAuthed, revokeAdminSession, type AdminStats } from '@/lib/adminApi';
+import AdminNav from './AdminNav';
 import '../admin.css';
 
 export const metadata: Metadata = {
@@ -26,32 +26,27 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!(await isAdminAuthed())) {
     redirect('/admin/login');
   }
+
+  // Счётчик ждущих ответа диалогов — единственное срочное в панели, поэтому он
+  // висит в меню на всех страницах. Недоступный API не должен ронять админку:
+  // без счётчика она полностью работоспособна, поэтому ошибку глотаем.
+  let supportUnread = 0;
+  try {
+    supportUnread = (await adminApi<AdminStats>('/stats')).support_unread ?? 0;
+  } catch {
+    supportUnread = 0;
+  }
+
   return (
     <div className="adminShell">
       <div className="adminInner">
-        <nav className="adminNav">
-          <div className="adminBrand">
-            Savel <span>ADMIN</span>
-          </div>
-          <Link href="/admin">Обзор</Link>
-          <Link href="/admin/schedule">Расписание</Link>
-          <Link href="/admin/users">Пользователи</Link>
-          <Link href="/admin/couples">Пары</Link>
-          <Link href="/admin/categories">Категории</Link>
-          <Link href="/admin/collections">Вопросов</Link>
-          <Link href="/admin/checkup">Чек-ап</Link>
-          <Link href="/admin/boost">Буст</Link>
-          <Link href="/admin/referrals">Рефералы</Link>
-          <Link href="/admin/subscriptions">Подписки</Link>
-          <Link href="/admin/settings">Значения</Link>
-          <Link href="/admin/notifications">Уведомления</Link>
-          <Link href="/admin/support">Поддержка</Link>
+        <AdminNav supportUnread={supportUnread}>
           <form action={logout}>
             <button className="adminGhostBtn" type="submit">
               Выйти
             </button>
           </form>
-        </nav>
+        </AdminNav>
         {children}
       </div>
     </div>

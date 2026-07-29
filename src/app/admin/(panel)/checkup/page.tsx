@@ -119,7 +119,7 @@ export default async function AdminCheckupPage() {
               ))}
               {checkups.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ color: '#8b7d78' }}>
+                  <td colSpan={6} style={{ color: 'var(--text-soft)' }}>
                     Пока нет ни одного чек-апа — создайте первый.
                   </td>
                 </tr>

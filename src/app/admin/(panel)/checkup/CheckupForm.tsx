@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { adminAssetUrl, type AdminCheckupCollection } from '@/lib/adminApi';
 import ConfirmButton from '../ConfirmButton';
+import type { FormState } from '@/lib/formState';
+import AdminForm, { SubmitButton } from '../AdminForm';
 
 type Props = {
   checkup?: AdminCheckupCollection;
-  action: (formData: FormData) => Promise<void>;
+  action: (prev: FormState, formData: FormData) => Promise<FormState>;
   deleteAction?: (formData: FormData) => Promise<void>;
   submitLabel: string;
 };
@@ -15,7 +17,7 @@ export default function CheckupForm({ checkup, action, deleteAction, submitLabel
   const previewUrl = adminAssetUrl(imageUrl);
 
   return (
-    <form action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm adminForm">
       {checkup ? <input type="hidden" name="id" value={checkup.id} /> : null}
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
@@ -56,9 +58,7 @@ export default function CheckupForm({ checkup, action, deleteAction, submitLabel
       </div>
 
       <div className="categoryEditActions">
-        <button className="adminBtn" type="submit">
-          {submitLabel}
-        </button>
+        <SubmitButton>{submitLabel}</SubmitButton>
         <Link className="adminGhostLink" href="/admin/checkup">
           Отмена
         </Link>
@@ -73,6 +73,6 @@ export default function CheckupForm({ checkup, action, deleteAction, submitLabel
           </ConfirmButton>
         ) : null}
       </div>
-    </form>
+    </AdminForm>
   );
 }

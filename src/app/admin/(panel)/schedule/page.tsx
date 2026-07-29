@@ -86,7 +86,7 @@ export default async function AdminSchedulePage() {
               })}
               {intervals.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ color: '#8b7d78' }}>
+                  <td colSpan={5} style={{ color: 'var(--text-soft)' }}>
                     Пока нет ни одного интервала — создайте первый.
                   </td>
                 </tr>

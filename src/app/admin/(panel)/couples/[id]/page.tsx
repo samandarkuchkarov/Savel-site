@@ -92,7 +92,7 @@ export default async function AdminCoupleDetailPage({ params }: Props) {
       <p className="adminSub">Каждое прохождение с ответами по вопросам, новые — сверху.</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
         {data.checkups.length === 0 ? (
-          <div className="statCard" style={{ color: '#8b7d78' }}>
+          <div className="statCard" style={{ color: 'var(--text-soft)' }}>
             Пара ещё не проходила чек-апы.
           </div>
         ) : (
@@ -110,13 +110,13 @@ export default async function AdminCoupleDetailPage({ params }: Props) {
                 <span style={{ fontWeight: 800, fontSize: 15 }}>{result.userName || '—'}</span>
                 <span className="pill pillMuted">{result.collectionTitle || 'Чек-ап'}</span>
                 <span className="pill pillCoral">{result.score} / 100</span>
-                <span style={{ marginLeft: 'auto', color: '#8b7d78', fontSize: 13 }}>
+                <span style={{ marginLeft: 'auto', color: 'var(--text-soft)', fontSize: 13 }}>
                   {dateTimeRu(result.createdAt)}
                 </span>
               </summary>
-              <div style={{ borderTop: '1px solid #efe6e1', padding: '10px 16px 14px' }}>
+              <div style={{ borderTop: '1px solid var(--divider)', padding: '10px 16px 14px' }}>
                 {result.answers.length === 0 ? (
-                  <span style={{ color: '#8b7d78' }}>Нет ответов.</span>
+                  <span style={{ color: 'var(--text-soft)' }}>Нет ответов.</span>
                 ) : (
                   <ol
                     style={{
@@ -133,7 +133,7 @@ export default async function AdminCoupleDetailPage({ params }: Props) {
                           {answer.value} / 5
                         </span>
                         {answer.note ? (
-                          <div style={{ color: '#8b7d78', fontSize: 13, marginTop: 2 }}>
+                          <div style={{ color: 'var(--text-soft)', fontSize: 13, marginTop: 2 }}>
                             «{answer.note}»
                           </div>
                         ) : null}
@@ -176,19 +176,19 @@ export default async function AdminCoupleDetailPage({ params }: Props) {
                 <td style={{ maxWidth: 260 }}>
                   {row.question_text}
                   {row.collection_title ? (
-                    <div style={{ color: '#8b7d78', fontSize: 12, marginTop: 2 }}>
+                    <div style={{ color: 'var(--text-soft)', fontSize: 12, marginTop: 2 }}>
                       {row.collection_title}
                     </div>
                   ) : null}
                 </td>
                 <td style={{ maxWidth: 240, fontWeight: 700 }}>{row.answer}</td>
-                <td style={{ color: '#8b7d78' }}>{row.note ? `«${row.note}»` : '—'}</td>
+                <td style={{ color: 'var(--text-soft)' }}>{row.note ? `«${row.note}»` : '—'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{dateTimeRu(row.created_at)}</td>
               </tr>
             ))}
             {data.answers.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ color: '#8b7d78' }}>
+                <td colSpan={6} style={{ color: 'var(--text-soft)' }}>
                   Пара ещё не отвечала на вопросы.
                 </td>
               </tr>

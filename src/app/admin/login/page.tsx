@@ -8,6 +8,7 @@ import {
   loginFailDelay,
   verifyAdminPassword,
 } from '@/lib/adminApi';
+import { SESSION_TTL_DAYS } from '@/lib/adminSession';
 import { clientIp } from '@/lib/clientIp';
 import '../admin.css';
 
@@ -37,7 +38,9 @@ async function login(formData: FormData) {
       // (до редиректа Caddy на https). На localhost в dev secure не нужен.
       secure: process.env.NODE_ENV === 'production',
       path: '/admin',
-      maxAge: 60 * 60 * 24 * 30,
+      // Срок жизни cookie в браузере обязан совпадать со сроком ВНУТРИ подписи:
+      // иначе браузер месяц носит значение, которое сервер давно не принимает.
+      maxAge: SESSION_TTL_DAYS * 24 * 60 * 60,
     });
     redirect('/admin');
   }

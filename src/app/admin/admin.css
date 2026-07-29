@@ -1,8 +1,63 @@
+/* ── Палитра ─────────────────────────────────────────────────────────────
+   Единственное место, где живут цвета админки. Раньше они были разбросаны по
+   CSS и по инлайновым стилям в TSX — сменить фирменный коралловый значило
+   искать hex по десяткам файлов.
+
+   Оттенки НЕ сведены к общему набору намеренно: несколько почти одинаковых
+   бежевых так и остались разными переменными. Слить их — правка дизайна,
+   а не рефакторинг; это отдельное решение.
+
+   ⚠️ --chart-a / --chart-b проверены валидатором палитры на белой карточке
+   (различимость при дальтонизме ΔE 23.0 при пороге 8). Менять их по одному
+   нельзя — только парой и с повторной проверкой. */
+:root {
+  --coral: #fd4f61;
+  --coral-dark: #e05555;
+  --bg: #fef8f3;
+  --ink: #3b2c2a;
+  --ink-neutral: #52514e;
+  --text-muted: #8a7672;
+  --text-soft: #8b7d78;
+  --text-hint: #a6938e;
+  --text-faint-2: #b8a9a4;
+  --text-faint: #c3b4ae;
+  --border: #efe3de;
+  --border-strong: #eadfd8;
+  --tint-warm: #faf1ec;
+  --tint-rose: #f3e9e5;
+  --tint-rose-2: #f3e7e2;
+  --danger: #d64545;
+  --danger-dark: #c33a3a;
+  --danger-bg: #fdeaea;
+  --success: #2e9e5b;
+  --success-dark: #1f9962;
+  --success-bg: #e9f8ef;
+  --delta-up: #006300;
+  --warning-ink: #b97324;
+  --warning-bg: #fdf1e3;
+  --coral-rgb: 253, 79, 97;
+  --shadow-rgb: 230, 90, 114;
+  /* Серии графика на дашборде (см. TrendChart). */
+  --chart-a: #fd4f61;
+  --chart-b: #4a3aa7;
+  /* Партнёр на графике чек-апов в карточке пользователя. */
+  --chart-partner: #e8718a;
+  /* Волосяная линия: сетка графика и разделители внутри карточек — одна роль. */
+  --divider: #efe6e1;
+  --success-bright: #2fbe7e;
+  --tint-cream: #fdf6f1;
+  --tint-neutral: #f3eee9;
+  --border-neutral: #ded2c8;
+  --text-neutral: #6f6157;
+  --warning-border: #f2c98a;
+  --warning-ink-strong: #8a5a12;
+}
+
 /* Savel admin — компактный стиль в бренд-палитре. */
 .adminShell {
   min-height: 100vh;
-  background: #fef8f3;
-  color: #3b2c2a;
+  background: var(--bg);
+  color: var(--ink);
   padding: 28px 20px 60px;
 }
 .adminInner { max-width: 1060px; margin: 0 auto; }
@@ -13,22 +68,22 @@
   margin-bottom: 26px;
   flex-wrap: wrap;
 }
-.adminBrand { display: flex; align-items: center; gap: 9px; font-weight: 900; font-size: 19px; color: #fd4f61; }
-.adminBrand span { background: #fd4f61; color: #fff; border-radius: 8px; padding: 3px 9px; font-size: 11px; letter-spacing: 0.5px; }
+.adminBrand { display: flex; align-items: center; gap: 9px; font-weight: 900; font-size: 19px; color: var(--coral); }
+.adminBrand span { background: var(--coral); color: #fff; border-radius: 8px; padding: 3px 9px; font-size: 11px; letter-spacing: 0.5px; }
 .adminNav a {
   font-weight: 800;
   font-size: 14.5px;
-  color: #8a7672;
+  color: var(--text-muted);
   text-decoration: none;
   padding: 8px 14px;
   border-radius: 999px;
 }
-.adminNav a:hover { color: #fd4f61; background: rgba(253, 79, 97, 0.08); }
+.adminNav a:hover { color: var(--coral); background: rgba(var(--coral-rgb), 0.08); }
 .adminNav form { margin-left: auto; }
 .adminGhostBtn {
-  border: 1.5px solid #efe3de;
+  border: 1.5px solid var(--border);
   background: #fff;
-  color: #8a7672;
+  color: var(--text-muted);
   font: inherit;
   font-weight: 800;
   font-size: 13.5px;
@@ -36,11 +91,11 @@
   border-radius: 999px;
   cursor: pointer;
 }
-.adminGhostBtn:hover { color: #e05555; border-color: #e05555; }
+.adminGhostBtn:hover { color: var(--coral-dark); border-color: var(--coral-dark); }
 
 .adminH1 { font-size: 26px; font-weight: 900; letter-spacing: -0.4px; margin: 0 0 18px; }
 .adminH2 { font-size: 17px; font-weight: 900; margin: 30px 0 12px; }
-.adminSub { color: #a6938e; font-weight: 600; font-size: 13.5px; margin: -8px 0 18px; }
+.adminSub { color: var(--text-hint); font-weight: 600; font-size: 13.5px; margin: -8px 0 18px; }
 .adminPageHead {
   display: flex;
   align-items: flex-start;
@@ -54,12 +109,12 @@
   background: #fff;
   border-radius: 18px;
   padding: 16px 18px;
-  box-shadow: 0 14px 30px -24px rgba(230, 90, 114, 0.5);
+  box-shadow: 0 14px 30px -24px rgba(var(--shadow-rgb), 0.5);
 }
-.statCard b { display: block; font-size: 26px; font-weight: 900; color: #fd4f61; }
-.statCard span { font-size: 12.5px; font-weight: 700; color: #a6938e; }
+.statCard b { display: block; font-size: 26px; font-weight: 900; color: var(--coral); }
+.statCard span { font-size: 12.5px; font-weight: 700; color: var(--text-hint); }
 
-.adminTableWrap { overflow-x: auto; background: #fff; border-radius: 18px; box-shadow: 0 14px 30px -24px rgba(230, 90, 114, 0.5); }
+.adminTableWrap { overflow-x: auto; background: #fff; border-radius: 18px; box-shadow: 0 14px 30px -24px rgba(var(--shadow-rgb), 0.5); }
 .adminTable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .adminTable th {
   text-align: left;
@@ -67,19 +122,20 @@
   font-weight: 800;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  color: #a6938e;
+  color: var(--text-hint);
   padding: 13px 14px 9px;
-  border-bottom: 1px solid #f3e7e2;
+  border-bottom: 1px solid var(--tint-rose-2);
 }
-.adminTable td { padding: 11px 14px; border-bottom: 1px solid #faf1ec; font-weight: 600; }
+.adminTable td { padding: 11px 14px; border-bottom: 1px solid var(--tint-warm); font-weight: 600; }
 .adminTable tr:last-child td { border-bottom: none; }
 .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800; }
-.pillGreen { background: rgba(47, 190, 126, 0.12); color: #1f9962; }
-.pillMuted { background: rgba(60, 40, 40, 0.06); color: #a6938e; }
-.pillCoral { background: rgba(253, 79, 97, 0.1); color: #fd4f61; }
+.pillGreen { background: rgba(47, 190, 126, 0.12); color: var(--success-dark); }
+.pillMuted { background: rgba(60, 40, 40, 0.06); color: var(--text-hint); }
+.pillCoral { background: rgba(var(--coral-rgb), 0.1); color: var(--coral); }
 
 .adminForm { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
 .adminForm input[type='text'],
+.adminForm input[type='search'],
 .adminForm input[type='number'],
 .adminForm input[type='url'],
 .adminForm input[type='date'],
@@ -88,24 +144,24 @@
   font: inherit;
   font-weight: 600;
   padding: 9px 13px;
-  border: 1.5px solid #efe3de;
+  border: 1.5px solid var(--border);
   border-radius: 12px;
   background: #fff;
-  color: #3b2c2a;
+  color: var(--ink);
   outline: none;
 }
-.adminForm input:focus { border-color: #fd4f61; }
+.adminForm input:focus { border-color: var(--coral); }
 .adminBtn {
   font: inherit;
   font-weight: 800;
   font-size: 13.5px;
   color: #fff;
-  background: #fd4f61;
+  background: var(--coral);
   border: none;
   border-radius: 12px;
   padding: 10px 18px;
   cursor: pointer;
-  box-shadow: 0 10px 20px -10px rgba(253, 79, 97, 0.6);
+  box-shadow: 0 10px 20px -10px rgba(var(--coral-rgb), 0.6);
 }
 .adminBtn:hover { opacity: 0.92; }
 .adminBtnLink,
@@ -118,20 +174,20 @@
 }
 .adminGhostLink {
   min-height: 36px;
-  border: 1.5px solid #efe3de;
+  border: 1.5px solid var(--border);
   background: #fff;
-  color: #8a7672;
+  color: var(--text-muted);
   font-weight: 800;
   font-size: 13px;
   border-radius: 12px;
   padding: 8px 13px;
 }
-.adminGhostLink:hover { color: #fd4f61; border-color: rgba(253, 79, 97, 0.35); }
+.adminGhostLink:hover { color: var(--coral); border-color: rgba(var(--coral-rgb), 0.35); }
 .adminDangerBtn {
   font: inherit;
   font-weight: 800;
   font-size: 12.5px;
-  color: #e05555;
+  color: var(--coral-dark);
   background: rgba(224, 85, 85, 0.08);
   border: none;
   border-radius: 10px;
@@ -145,13 +201,13 @@
   background: #fff;
   border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 24px 50px -24px rgba(230, 90, 114, 0.5);
+  box-shadow: 0 24px 50px -24px rgba(var(--shadow-rgb), 0.5);
   text-align: center;
 }
 .loginCard h1 { font-size: 22px; font-weight: 900; margin: 12px 0 6px; }
-.loginCard p { color: #a6938e; font-weight: 600; font-size: 13.5px; margin: 0 0 18px; }
+.loginCard p { color: var(--text-hint); font-weight: 600; font-size: 13.5px; margin: 0 0 18px; }
 .loginCard form { display: flex; flex-direction: column; gap: 10px; }
-.loginError { color: #e05555; font-weight: 700; font-size: 13px; margin-top: 10px; }
+.loginError { color: var(--coral-dark); font-weight: 700; font-size: 13px; margin-top: 10px; }
 
 .catRow { display: grid; grid-template-columns: 58px 1.1fr 1.4fr 1.8fr 70px 70px auto; gap: 8px; align-items: center; }
 .catThumb {
@@ -159,14 +215,14 @@
   height: 46px;
   border-radius: 13px;
   object-fit: cover;
-  background: #fef8f3;
-  border: 1.5px solid #efe3de;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
 }
 .catThumbEmpty {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #a6938e;
+  color: var(--text-hint);
   font-size: 11px;
   font-weight: 800;
 }
@@ -179,7 +235,7 @@
 .categoryEditForm label {
   display: grid;
   gap: 7px;
-  color: #8a7672;
+  color: var(--text-muted);
   font-size: 12.5px;
   font-weight: 800;
 }
@@ -187,13 +243,13 @@
   padding-left: 2px;
 }
 .categoryEditForm small {
-  color: #a6938e;
+  color: var(--text-hint);
   font-size: 11.5px;
   font-weight: 700;
 }
 .categoryEditForm input:disabled {
-  color: #a6938e;
-  background: #fef8f3;
+  color: var(--text-hint);
+  background: var(--bg);
 }
 .categoryFileInput {
   width: 100%;
@@ -202,9 +258,9 @@
 .categoryFileInput::file-selector-button {
   font: inherit;
   font-weight: 800;
-  color: #fd4f61;
-  background: rgba(253, 79, 97, 0.08);
-  border: 1.5px solid rgba(253, 79, 97, 0.2);
+  color: var(--coral);
+  background: rgba(var(--coral-rgb), 0.08);
+  border: 1.5px solid rgba(var(--coral-rgb), 0.2);
   border-radius: 10px;
   padding: 8px 12px;
   margin-right: 12px;
@@ -214,8 +270,8 @@
   width: 96px;
   height: 96px;
   border-radius: 20px;
-  background: #fef8f3;
-  border: 1.5px solid #efe3de;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
   overflow: hidden;
 }
 .categoryPreviewImage {
@@ -229,7 +285,7 @@
   height: 100%;
   align-items: center;
   justify-content: center;
-  color: #a6938e;
+  color: var(--text-hint);
   font-size: 12px;
   font-weight: 900;
 }
@@ -253,17 +309,17 @@
   align-items: center;
   gap: 10px !important;
   padding: 0 16px;
-  border: 1.5px solid #efe3de;
+  border: 1.5px solid var(--border);
   border-radius: 12px;
   background: #fff;
-  color: #3b2c2a;
+  color: var(--ink);
   font-size: 13.5px;
 }
 .categoryActiveCheck input[type='checkbox'] {
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: #fd4f61;
+  accent-color: var(--coral);
 }
 .categoryEditActions {
   display: flex;
@@ -290,13 +346,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #3b2c2a;
+  color: var(--ink);
   background: #fff;
-  border: 1.5px solid #eadfd8;
+  border: 1.5px solid var(--border-strong);
   border-radius: 10px;
   cursor: pointer;
 }
-.sortBtn:hover:not(:disabled) { border-color: #fd4f61; color: #fd4f61; }
+.sortBtn:hover:not(:disabled) { border-color: var(--coral); color: var(--coral); }
 .sortBtn:disabled { opacity: 0.35; cursor: default; }
 
 /* Переключатель фильтра списка (ссылка-таблетка, «Все» / «Непрочитанные»).
@@ -315,17 +371,17 @@
   border-radius: 12px;
   text-decoration: none;
   cursor: pointer;
-  color: #3b2c2a;
+  color: var(--ink);
   background: #fff;
-  border: 1.5px solid #eadfd8;
+  border: 1.5px solid var(--border-strong);
 }
-.filterChip:hover:not(:disabled) { border-color: #fd4f61; color: #fd4f61; }
+.filterChip:hover:not(:disabled) { border-color: var(--coral); color: var(--coral); }
 .filterChip:disabled { opacity: 0.5; cursor: default; }
 .filterChipOn {
   color: #fff;
-  background: #fd4f61;
-  border-color: #fd4f61;
-  box-shadow: 0 10px 20px -10px rgba(253, 79, 97, 0.6);
+  background: var(--coral);
+  border-color: var(--coral);
+  box-shadow: 0 10px 20px -10px rgba(var(--coral-rgb), 0.6);
 }
 .filterChipOn:hover { color: #fff; opacity: 0.92; }
 
@@ -335,15 +391,15 @@
   font: inherit;
   font-weight: 600;
   padding: 9px 13px;
-  border: 1.5px solid #efe3de;
+  border: 1.5px solid var(--border);
   border-radius: 12px;
   background: #fff;
-  color: #3b2c2a;
+  color: var(--ink);
   outline: none;
   width: 100%;
 }
 .adminForm select:focus,
-.adminForm textarea:focus { border-color: #fd4f61; }
+.adminForm textarea:focus { border-color: var(--coral); }
 .adminForm textarea { resize: vertical; line-height: 1.45; }
 
 .questionCard {
@@ -360,7 +416,7 @@
   min-width: 0;
 }
 .questionCardMain label { display: flex; flex-direction: column; gap: 6px; }
-.questionCardMain label span { font-size: 12.5px; font-weight: 800; color: #8b7d78; }
+.questionCardMain label span { font-size: 12.5px; font-weight: 800; color: var(--text-soft); }
 .questionCardActions {
   display: flex;
   flex-direction: column;
@@ -383,7 +439,7 @@
   text-decoration: none;
   transition: border-color 0.15s, transform 0.15s;
 }
-.statCardLink:hover { border-color: #fd4f61; transform: translateY(-1px); }
+.statCardLink:hover { border-color: var(--coral); transform: translateY(-1px); }
 
 .adminPager {
   display: flex;
@@ -393,10 +449,59 @@
   margin-top: 14px;
   flex-wrap: wrap;
 }
-.adminPagerInfo { font-size: 13px; font-weight: 700; color: #8b7d78; }
-.adminPagerBtns { display: inline-flex; align-items: center; gap: 8px; }
-.adminPagerBtns .sortBtn { text-decoration: none; }
+.adminPagerInfo { font-size: 13px; font-weight: 700; color: var(--text-soft); }
+.adminPagerBtns { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+/* .sortBtn — иконочная кнопка ФИКСИРОВАННЫХ 32×32; номер «137» из неё вываливался,
+   поэтому в пагинации ширина растёт по содержимому. */
+.adminPagerBtns .sortBtn {
+  text-decoration: none;
+  width: auto;
+  min-width: 32px;
+  padding: 0 9px;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
 .adminPagerBtns span.sortBtn[aria-disabled='true'] { opacity: 0.35; cursor: default; }
+/* Текущая страница — залита, не ссылка: вести ей некуда. */
+.adminPagerBtns .pagerNow {
+  color: #fff;
+  background: var(--coral);
+  border-color: var(--coral);
+  cursor: default;
+}
+.pagerGap { color: var(--text-faint); font-weight: 800; padding: 0 2px; user-select: none; }
+
+/* ── Расходы на ИИ: единственные деньги на дашборде ─────────────────────── */
+
+/* Отдельная карточка, а не ячейка в .statGrid: там «штуки», здесь доллары —
+   в одной сетке глаз читает их как одну и ту же величину. */
+.costCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 32px;
+  margin-top: 14px;
+  padding: 18px 22px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 14px 30px -24px rgba(var(--shadow-rgb), 0.5);
+}
+.costMain { display: flex; flex-direction: column; gap: 2px; }
+.costMain b { font-size: 30px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; }
+.costMain .adminSub { margin: 2px 0 0; font-size: 12.5px; }
+.costLabel { font-size: 12.5px; font-weight: 700; color: var(--text-hint); }
+.costSide { display: flex; flex-wrap: wrap; gap: 10px 26px; margin: 0; }
+.costSide dt { font-size: 12px; font-weight: 700; color: var(--text-hint); }
+.costSide dd {
+  margin: 2px 0 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink-neutral);
+  font-variant-numeric: tabular-nums;
+}
+.pagerSizes { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pagerSizes .filterChip { padding: 7px 12px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
 /* Read-only профиль пользователя (данные заполняет сам пользователь). */
 .profileCard {
@@ -406,8 +511,8 @@
   align-items: flex-start;
 }
 .profileField { display: flex; flex-direction: column; gap: 3px; }
-.profileField span { font-size: 12px; font-weight: 800; color: #a6938e; }
-.profileField b { font-size: 15.5px; font-weight: 800; color: #3b2c2a; }
+.profileField span { font-size: 12px; font-weight: 800; color: var(--text-hint); }
+.profileField b { font-size: 15.5px; font-weight: 800; color: var(--ink); }
 
 /* Вопросы чек-апа — компактный редактируемый список. */
 .checkupList { margin-top: 6px; }
@@ -419,19 +524,19 @@
   border-radius: 16px;
   padding: 11px 14px;
   margin-bottom: 10px;
-  box-shadow: 0 14px 30px -24px rgba(230, 90, 114, 0.5);
+  box-shadow: 0 14px 30px -24px rgba(var(--shadow-rgb), 0.5);
 }
 .checkupItem input[type='text'] {
   font: inherit;
   font-weight: 600;
   padding: 9px 13px;
-  border: 1.5px solid #efe3de;
+  border: 1.5px solid var(--border);
   border-radius: 12px;
   background: #fff;
-  color: #3b2c2a;
+  color: var(--ink);
   outline: none;
 }
-.checkupItem input[type='text']:focus { border-color: #fd4f61; }
+.checkupItem input[type='text']:focus { border-color: var(--coral); }
 .checkupOrder { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
 .checkupOrder .sortBtn { width: 30px; height: 25px; font-size: 13px; }
 .checkupNum {
@@ -442,12 +547,12 @@
   align-items: center;
   justify-content: center;
   border-radius: 9px;
-  background: rgba(253, 79, 97, 0.1);
-  color: #fd4f61;
+  background: rgba(var(--coral-rgb), 0.1);
+  color: var(--coral);
   font-weight: 900;
   font-size: 13px;
 }
-.checkupNumOff { background: rgba(60, 40, 40, 0.06); color: #a6938e; }
+.checkupNumOff { background: rgba(60, 40, 40, 0.06); color: var(--text-hint); }
 .checkupForm {
   flex: 1;
   display: flex;
@@ -462,14 +567,14 @@
   gap: 7px;
   font-weight: 800;
   font-size: 13px;
-  color: #8a7672;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 .checkupActive input[type='checkbox'] {
   width: 17px;
   height: 17px;
   margin: 0;
-  accent-color: #fd4f61;
+  accent-color: var(--coral);
 }
 .checkupDelete { flex-shrink: 0; }
 .checkupAdd input[type='text'] { flex: 1; min-width: 0; }
@@ -483,11 +588,11 @@
 .scheduleDates label { flex: 1; min-width: 150px; }
 
 /* «Значения» — форма цен и баннер успешного сохранения. */
-.fieldCol { display: grid; gap: 7px; color: #8a7672; font-size: 12.5px; font-weight: 800; }
+.fieldCol { display: grid; gap: 7px; color: var(--text-muted); font-size: 12.5px; font-weight: 800; }
 .fieldCol span { padding-left: 2px; }
 .savedBanner {
-  color: #2e9e5b;
-  background: #e9f8ef;
+  color: var(--success);
+  background: var(--success-bg);
   border-radius: 12px;
   padding: 10px 14px;
   font-weight: 800;
@@ -505,9 +610,193 @@
   font-weight: 800;
   white-space: nowrap;
 }
-.noteChipPlan { background: #fdf1e3; color: #b97324; }
-.noteChipOk { background: #e9f8ef; color: #2e9e5b; }
-.noteChipErr { background: #fdeaea; color: #d64545; }
-.noteError { margin-top: 5px; font-size: 11.5px; font-weight: 700; color: #d64545; max-width: 220px; }
-.noteBody { color: #8a7672; max-width: 260px; }
+.noteChipPlan { background: var(--warning-bg); color: var(--warning-ink); }
+.noteChipOk { background: var(--success-bg); color: var(--success); }
+.noteChipErr { background: var(--danger-bg); color: var(--danger); }
+.noteError { margin-top: 5px; font-size: 11.5px; font-weight: 700; color: var(--danger); max-width: 220px; }
+.noteBody { color: var(--text-muted); max-width: 260px; }
 .noteActions { display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+
+/* ── Меню: группы, подсветка текущего раздела и счётчик поддержки ───────── */
+
+/* Группы — колонки «подпись + ряд ссылок». Выравнивание по НИЗУ: у «Обзора»
+   подписи нет, и без flex-end его ссылка висела бы выше остальных. */
+.adminNav { align-items: flex-end; gap: 8px 20px; }
+.navGroup { display: flex; flex-direction: column; gap: 4px; }
+.navGroupTitle {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding-left: 14px;
+}
+.navGroupItems { display: flex; flex-wrap: wrap; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+/* 13 одинаковых ссылок не давали понять, где ты; активный раздел залит. */
+.adminNav a.adminNavOn { color: var(--coral); background: rgba(var(--coral-rgb), 0.12); }
+.adminNav a { display: inline-flex; align-items: center; gap: 7px; }
+/* Бейдж «ждут ответа» — единственное срочное в панели, поэтому он красный. */
+.navBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Обзор: срочное над счётчиками ──────────────────────────────────────── */
+
+.alertCard,
+.calmCard {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  text-decoration: none;
+}
+.alertCard { background: var(--danger-bg); border: 1.5px solid rgba(214, 69, 69, 0.25); }
+.alertCard b { font-size: 17px; font-weight: 900; color: var(--danger-dark); }
+.alertCard span { font-size: 13px; font-weight: 800; color: var(--danger); }
+.alertCard:hover { border-color: var(--danger); }
+.calmCard { background: #fff; box-shadow: 0 14px 30px -24px rgba(var(--shadow-rgb), 0.5); }
+.calmCard b { font-size: 15px; font-weight: 900; color: var(--success); }
+.calmCard span { font-size: 12.5px; font-weight: 700; color: var(--text-hint); }
+
+/* ── Списки: поиск и сортируемые заголовки ──────────────────────────────── */
+
+.listToolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+/* Поле поиска заметно шире прочих: в него вводят имена и почты целиком. */
+.listToolbar input[type='search'] { min-width: 280px; }
+.listToolbarNote { font-size: 12.5px; font-weight: 700; color: var(--text-hint); }
+
+.sortableTh { padding: 0 !important; }
+.sortableThRight { text-align: right; }
+/* Ссылка занимает всю ячейку — кликается весь заголовок, а не только текст. */
+.sortLink {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 14px;
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+  white-space: nowrap;
+}
+.sortLink:hover { color: var(--coral); }
+.sortLinkOn { color: var(--coral); }
+/* Неактивная стрелка бледная: подсказывает про сортировку, но не шумит. */
+.sortArrow { opacity: 0.35; font-size: 12px; }
+.sortLinkOn .sortArrow { opacity: 1; }
+
+/* ── Ячейки таблиц (вместо инлайновых стилей по месту) ──────────────────── */
+
+.numCell { font-variant-numeric: tabular-nums; }
+.muted { color: var(--text-soft); }
+.mutedFaint { color: var(--text-faint); }
+.adminErrorCard { margin-top: 14px; }
+
+/* Ошибка сохранения формы — над полями, введённое остаётся на месте. */
+.formError {
+  background: var(--danger-bg);
+  border: 1.5px solid rgba(214, 69, 69, 0.3);
+  color: var(--danger-dark);
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 0 14px;
+  grid-column: 1 / -1;
+  width: 100%;
+}
+/* Форма цен раскладывалась инлайновым style; класс — чтобы ошибка встала своей строкой. */
+.settingsPriceForm { align-items: flex-end; }
+
+/* ── Обзор: прирост на карточках ────────────────────────────────────────── */
+
+.statDelta { display: flex; flex-direction: column; gap: 1px; margin-top: 7px; }
+.statDelta span { font-size: 11.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+/* Рост — зелёный из палитры дельт (WCAG-чистый на белом); ноль не кричит. */
+.deltaUp { color: var(--delta-up); }
+.deltaFlat { color: var(--text-faint-2); }
+
+/* ── Обзор: график динамики ─────────────────────────────────────────────── */
+
+.trendCard {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 20px 14px;
+  margin-top: 18px;
+  box-shadow: 0 14px 30px -24px rgba(var(--shadow-rgb), 0.5);
+}
+.trendHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.trendTitle { font-size: 15px; font-weight: 900; margin: 0; color: var(--ink); }
+.trendSub { font-size: 12.5px; font-weight: 700; color: var(--text-hint); margin: 3px 0 0; }
+
+.trendLegend { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; }
+.trendLegend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  /* Текст — текстовым токеном, не цветом серии: идентичность несёт метка рядом. */
+  color: var(--ink-neutral);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+/* Ключ легенды повторяет марку: для линий — штрих, не квадрат. */
+.trendKey { width: 14px; height: 3px; border-radius: 2px; }
+
+.trendPlot { position: relative; }
+.trendSvg { display: block; width: 100%; height: auto; }
+.trendTick { fill: var(--text-hint); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.trendTickY { text-anchor: end; }
+.trendTickX { text-anchor: middle; }
+/* Клавиатурный фокус по дням виден — иначе таб-обход невозможно отследить. */
+.trendPlot rect[tabindex]:focus-visible { outline: 2px solid var(--coral); outline-offset: -2px; }
+
+.trendTip {
+  position: absolute;
+  top: 6px;
+  pointer-events: none;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 11px;
+  box-shadow: 0 12px 24px -16px rgba(59, 44, 42, 0.5);
+  white-space: nowrap;
+  z-index: 2;
+}
+.trendTip > b { display: block; font-size: 11.5px; font-weight: 800; color: var(--text-hint); margin-bottom: 4px; }
+/* В тултипе ведёт ЗНАЧЕНИЕ, подпись — вторична: серию читатель уже знает. */
+.trendTipRow { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-neutral); }
+.trendTipRow b { font-size: 14px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; }
+.trendTipKey { width: 12px; height: 3px; border-radius: 2px; flex: none; }
+
+.trendTable { margin-top: 10px; }
+.trendTable summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+.trendTable summary:hover { color: var(--coral); }
+.trendTable .adminTableWrap { margin-top: 8px; box-shadow: none; border: 1.5px solid var(--tint-rose); }

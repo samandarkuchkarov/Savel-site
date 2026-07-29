@@ -178,7 +178,7 @@ export default function SupportDialog({
           display: 'flex',
           flexDirection: 'column',
           gap: 10,
-          background: '#fdf6f1',
+          background: 'var(--tint-cream)',
         }}>
         {hasEarlier ? (
           <button
@@ -192,7 +192,7 @@ export default function SupportDialog({
           </button>
         ) : null}
         {messages.length === 0 ? (
-          <div style={{ color: '#8b7d78', textAlign: 'center', marginTop: 40, fontWeight: 600 }}>
+          <div style={{ color: 'var(--text-soft)', textAlign: 'center', marginTop: 40, fontWeight: 600 }}>
             Сообщений пока нет.
           </div>
         ) : (
@@ -204,8 +204,8 @@ export default function SupportDialog({
                 style={{
                   alignSelf: support ? 'flex-end' : 'flex-start',
                   maxWidth: '72%',
-                  background: support ? '#fd4f61' : '#fff',
-                  color: support ? '#fff' : '#3b2c2a',
+                  background: support ? 'var(--coral)' : '#fff',
+                  color: support ? '#fff' : 'var(--ink)',
                   borderRadius: 14,
                   borderBottomRightRadius: support ? 5 : 14,
                   borderBottomLeftRadius: support ? 14 : 5,

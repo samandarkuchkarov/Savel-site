@@ -5,6 +5,7 @@ import {
   adminUploadImage,
   type AdminCheckupCollectionDetail,
 } from '@/lib/adminApi';
+import { FORM_OK, toFormError, type FormState } from '@/lib/formState';
 import CheckupForm from '../CheckupForm';
 import ConfirmButton from '../../ConfirmButton';
 
@@ -15,21 +16,26 @@ type Props = {
   searchParams: Promise<{ error?: string }>;
 };
 
-async function saveCheckup(formData: FormData) {
+async function saveCheckup(_prev: FormState, formData: FormData): Promise<FormState> {
   'use server';
   const id = String(formData.get('id'));
-  const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
-  const currentImageUrl = String(formData.get('imageUrl') ?? '').trim() || null;
-  await adminApi(`/checkup-collections/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify({
-      title: String(formData.get('title') ?? '').trim(),
-      imageUrl: uploadedImageUrl ?? currentImageUrl,
-      active: formData.get('active') === 'on',
-    }),
-  });
+  try {
+    const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
+    const currentImageUrl = String(formData.get('imageUrl') ?? '').trim() || null;
+    await adminApi(`/checkup-collections/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        title: String(formData.get('title') ?? '').trim(),
+        imageUrl: uploadedImageUrl ?? currentImageUrl,
+        active: formData.get('active') === 'on',
+      }),
+    });
+  } catch (e) {
+    return toFormError(e, formData);
+  }
   revalidatePath('/admin/checkup');
   revalidatePath(`/admin/checkup/${id}`);
+  return FORM_OK;
 }
 
 async function deleteCheckup(formData: FormData) {

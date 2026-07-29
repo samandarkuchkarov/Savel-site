@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { adminAssetUrl, type AdminNotification } from '@/lib/adminApi';
+import type { FormState } from '@/lib/formState';
+import AdminForm, { SubmitButton } from '../AdminForm';
 
 type Props = {
   notification?: AdminNotification;
-  action: (formData: FormData) => Promise<void>;
+  action: (prev: FormState, formData: FormData) => Promise<FormState>;
   submitLabel: string;
 };
 
@@ -19,7 +21,7 @@ function toTashkentLocal(iso: string | null | undefined): string {
 /** Форма рассылки: заголовок, текст, фото (опционально), время отправки. */
 export default function NotificationForm({ notification, action, submitLabel }: Props) {
   return (
-    <form action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm adminForm">
       {notification ? <input type="hidden" name="id" value={notification.id} /> : null}
       {notification?.image_url ? (
         <input type="hidden" name="currentImageUrl" value={notification.image_url} />
@@ -73,13 +75,11 @@ export default function NotificationForm({ notification, action, submitLabel }: 
       </label>
 
       <div className="categoryEditActions">
-        <button className="adminBtn" type="submit">
-          {submitLabel}
-        </button>
+        <SubmitButton>{submitLabel}</SubmitButton>
         <Link className="adminGhostLink" href="/admin/notifications">
           Отмена
         </Link>
       </div>
-    </form>
+    </AdminForm>
   );
 }
