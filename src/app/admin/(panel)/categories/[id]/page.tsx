@@ -93,6 +93,29 @@ export default async function EditCategoryPage({ params }: Props) {
     notFound();
   }
 
+  // Подборки и чек-апы — одной таблицей: раздельные секции читались как два
+  // экрана, а разницу типов достаточно нести бейджу в колонке «Тип».
+  const items = [
+    ...collections.map(c => ({
+      kind: 'collection' as const,
+      id: c.id,
+      title: c.title,
+      image_url: c.image_url,
+      question_count: c.question_count,
+      active: c.active,
+      href: `/admin/collections/${c.id}`,
+    })),
+    ...checkups.map(c => ({
+      kind: 'checkup' as const,
+      id: c.id,
+      title: c.title,
+      image_url: c.image_url,
+      question_count: c.question_count,
+      active: c.active,
+      href: `/admin/checkup/${c.id}`,
+    })),
+  ];
+
   return (
     <>
       <h1 className="adminH1">Редактировать категорию</h1>
@@ -104,71 +127,14 @@ export default async function EditCategoryPage({ params }: Props) {
         submitLabel="Сохранить"
       />
 
-      <h2 className="adminH2">Подборки этой категории ({collections.length})</h2>
-      {collections.length === 0 ? (
+      <h2 className="adminH2">Контент этой категории ({items.length})</h2>
+      {items.length === 0 ? (
         <p className="adminSub">
-          Пока нет подборок. Создать и привязать их можно на вкладке{' '}
+          Пока пусто. Привязать контент можно на вкладках{' '}
           <Link className="adminGhostLink" href="/admin/collections">
-            «Подборки»
-          </Link>
-          .
-        </p>
-      ) : (
-        <div className="adminTableWrap">
-          <table className="adminTable">
-            <thead>
-              <tr>
-                <th>Изображение</th>
-                <th>Название</th>
-                <th>Вопросов</th>
-                <th>Статус</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {collections.map(collection => (
-                <tr key={collection.id}>
-                  <td>
-                    {collection.image_url ? (
-                      <img className="catThumb" src={adminAssetUrl(collection.image_url)} alt="" />
-                    ) : (
-                      <span className="catThumb catThumbEmpty">нет</span>
-                    )}
-                  </td>
-                  <td>{collection.title}</td>
-                  <td>{collection.question_count}</td>
-                  <td>
-                    {collection.active ? (
-                      <span className="pill pillGreen">вкл</span>
-                    ) : (
-                      <span className="pill pillMuted">выкл</span>
-                    )}
-                  </td>
-                  <td>
-                    <div className="rowActions">
-                      <Link className="adminGhostLink" href={`/admin/collections/${collection.id}`}>
-                        Открыть
-                      </Link>
-                      <form action={detachCollection}>
-                        <input type="hidden" name="categoryId" value={category.id} />
-                        <input type="hidden" name="collectionId" value={collection.id} />
-                        <button className="adminDangerBtn" type="submit">
-                          Убрать из категории
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <h2 className="adminH2">Чек-апы этой категории ({checkups.length})</h2>
-      {checkups.length === 0 ? (
-        <p className="adminSub">
-          Пока нет чек-апов. Создать и привязать их можно на вкладке{' '}
+            «Вопросы»
+          </Link>{' '}
+          и{' '}
           <Link className="adminGhostLink" href="/admin/checkup">
             «Чек-ап»
           </Link>
@@ -181,25 +147,33 @@ export default async function EditCategoryPage({ params }: Props) {
               <tr>
                 <th>Изображение</th>
                 <th>Название</th>
+                <th>Тип</th>
                 <th>Вопросов</th>
                 <th>Статус</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {checkups.map(checkup => (
-                <tr key={checkup.id}>
+              {items.map(item => (
+                <tr key={`${item.kind}-${item.id}`}>
                   <td>
-                    {checkup.image_url ? (
-                      <img className="catThumb" src={adminAssetUrl(checkup.image_url)} alt="" />
+                    {item.image_url ? (
+                      <img className="catThumb" src={adminAssetUrl(item.image_url)} alt="" />
                     ) : (
                       <span className="catThumb catThumbEmpty">нет</span>
                     )}
                   </td>
-                  <td>{checkup.title}</td>
-                  <td>{checkup.question_count}</td>
+                  <td>{item.title}</td>
                   <td>
-                    {checkup.active ? (
+                    {item.kind === 'collection' ? (
+                      <span className="pill pillMuted">Вопросы</span>
+                    ) : (
+                      <span className="pill pillCoral">Чек-ап</span>
+                    )}
+                  </td>
+                  <td>{item.question_count}</td>
+                  <td>
+                    {item.active ? (
                       <span className="pill pillGreen">вкл</span>
                     ) : (
                       <span className="pill pillMuted">выкл</span>
@@ -207,12 +181,16 @@ export default async function EditCategoryPage({ params }: Props) {
                   </td>
                   <td>
                     <div className="rowActions">
-                      <Link className="adminGhostLink" href={`/admin/checkup/${checkup.id}`}>
+                      <Link className="adminGhostLink" href={item.href}>
                         Открыть
                       </Link>
-                      <form action={detachCheckup}>
+                      <form action={item.kind === 'collection' ? detachCollection : detachCheckup}>
                         <input type="hidden" name="categoryId" value={category.id} />
-                        <input type="hidden" name="checkupId" value={checkup.id} />
+                        <input
+                          type="hidden"
+                          name={item.kind === 'collection' ? 'collectionId' : 'checkupId'}
+                          value={item.id}
+                        />
                         <button className="adminDangerBtn" type="submit">
                           Убрать из категории
                         </button>
