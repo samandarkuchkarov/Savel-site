@@ -37,7 +37,7 @@ export default async function AdminCategoriesPage() {
     <>
       <div className="adminPageHead">
         <div>
-          <h1 className="adminH1">Категории вопросов</h1>
+          <h1 className="adminH1">Категории</h1>
           <p className="adminSub">
             Приложение показывает эти категории на вкладке «Пульс» — изменения видны сразу.
           </p>
