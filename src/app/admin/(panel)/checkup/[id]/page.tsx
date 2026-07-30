@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import {
   adminApi,
   adminUploadImage,
+  type AdminCategory,
   type AdminCheckupCollectionDetail,
 } from '@/lib/adminApi';
 import { FORM_OK, toFormError, type FormState } from '@/lib/formState';
@@ -22,10 +23,14 @@ async function saveCheckup(_prev: FormState, formData: FormData): Promise<FormSt
   try {
     const uploadedImageUrl = await adminUploadImage(formData.get('imageFile'));
     const currentImageUrl = String(formData.get('imageUrl') ?? '').trim() || null;
+    const categoryId = String(formData.get('categoryId') ?? '').trim();
     await adminApi(`/checkup-collections/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({
         title: String(formData.get('title') ?? '').trim(),
+        // Пустой выбор — явный null: он ОТВЯЗЫВАЕТ чек-ап от категории
+        // (сервер различает «не прислали» и «прислали null»).
+        categoryId: categoryId || null,
         imageUrl: uploadedImageUrl ?? currentImageUrl,
         active: formData.get('active') === 'on',
       }),
@@ -112,8 +117,12 @@ export default async function EditCheckupPage({ params, searchParams }: Props) {
   const { id } = await params;
   const { error } = await searchParams;
   let checkup: AdminCheckupCollectionDetail;
+  let categories: AdminCategory[];
   try {
-    checkup = await adminApi<AdminCheckupCollectionDetail>(`/checkup-collections/${id}`);
+    [checkup, categories] = await Promise.all([
+      adminApi<AdminCheckupCollectionDetail>(`/checkup-collections/${id}`),
+      adminApi<AdminCategory[]>('/categories'),
+    ]);
   } catch {
     notFound();
   }
@@ -126,6 +135,7 @@ export default async function EditCheckupPage({ params, searchParams }: Props) {
 
       <CheckupForm
         checkup={checkup}
+        categories={categories}
         action={saveCheckup}
         deleteAction={deleteCheckup}
         submitLabel="Сохранить"

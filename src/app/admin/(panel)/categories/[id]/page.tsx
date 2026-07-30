@@ -6,6 +6,7 @@ import {
   adminAssetUrl,
   adminUploadImage,
   type AdminCategory,
+  type AdminCheckupCollection,
   type AdminCollection,
 } from '@/lib/adminApi';
 import { toFormError, type FormState } from '@/lib/formState';
@@ -62,14 +63,31 @@ async function detachCollection(formData: FormData) {
   revalidatePath('/admin/collections');
 }
 
+/** Отвязать чек-ап от категории (сам чек-ап и его вопросы остаются). */
+async function detachCheckup(formData: FormData) {
+  'use server';
+  const categoryId = String(formData.get('categoryId'));
+  const checkupId = String(formData.get('checkupId'));
+  await adminApi(`/checkup-collections/${checkupId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ categoryId: null }),
+  });
+  revalidatePath(`/admin/categories/${categoryId}`);
+  revalidatePath('/admin/checkup');
+}
+
 export default async function EditCategoryPage({ params }: Props) {
   const { id } = await params;
   let category: AdminCategory;
   let collections: AdminCollection[];
+  let checkups: AdminCheckupCollection[];
   try {
-    [category, collections] = await Promise.all([
+    [category, collections, checkups] = await Promise.all([
       adminApi<AdminCategory>(`/categories/${encodeURIComponent(id)}`),
       adminApi<AdminCollection[]>(`/categories/${encodeURIComponent(id)}/collections`),
+      adminApi<AdminCheckupCollection[]>(
+        `/categories/${encodeURIComponent(id)}/checkup-collections`,
+      ),
     ]);
   } catch {
     notFound();
@@ -134,6 +152,67 @@ export default async function EditCategoryPage({ params }: Props) {
                       <form action={detachCollection}>
                         <input type="hidden" name="categoryId" value={category.id} />
                         <input type="hidden" name="collectionId" value={collection.id} />
+                        <button className="adminDangerBtn" type="submit">
+                          Убрать из категории
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <h2 className="adminH2">Чек-апы этой категории ({checkups.length})</h2>
+      {checkups.length === 0 ? (
+        <p className="adminSub">
+          Пока нет чек-апов. Создать и привязать их можно на вкладке{' '}
+          <Link className="adminGhostLink" href="/admin/checkup">
+            «Чек-ап»
+          </Link>
+          .
+        </p>
+      ) : (
+        <div className="adminTableWrap">
+          <table className="adminTable">
+            <thead>
+              <tr>
+                <th>Изображение</th>
+                <th>Название</th>
+                <th>Вопросов</th>
+                <th>Статус</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {checkups.map(checkup => (
+                <tr key={checkup.id}>
+                  <td>
+                    {checkup.image_url ? (
+                      <img className="catThumb" src={adminAssetUrl(checkup.image_url)} alt="" />
+                    ) : (
+                      <span className="catThumb catThumbEmpty">нет</span>
+                    )}
+                  </td>
+                  <td>{checkup.title}</td>
+                  <td>{checkup.question_count}</td>
+                  <td>
+                    {checkup.active ? (
+                      <span className="pill pillGreen">вкл</span>
+                    ) : (
+                      <span className="pill pillMuted">выкл</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="rowActions">
+                      <Link className="adminGhostLink" href={`/admin/checkup/${checkup.id}`}>
+                        Открыть
+                      </Link>
+                      <form action={detachCheckup}>
+                        <input type="hidden" name="categoryId" value={category.id} />
+                        <input type="hidden" name="checkupId" value={checkup.id} />
                         <button className="adminDangerBtn" type="submit">
                           Убрать из категории
                         </button>

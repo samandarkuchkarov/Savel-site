@@ -1,18 +1,20 @@
 import Link from 'next/link';
-import { adminAssetUrl, type AdminCheckupCollection } from '@/lib/adminApi';
+import { adminAssetUrl, type AdminCategory, type AdminCheckupCollection } from '@/lib/adminApi';
 import ConfirmButton from '../ConfirmButton';
 import type { FormState } from '@/lib/formState';
 import AdminForm, { SubmitButton } from '../AdminForm';
 
 type Props = {
   checkup?: AdminCheckupCollection;
+  /** Для выбора категории; чек-ап без категории виден только через расписание. */
+  categories: AdminCategory[];
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   deleteAction?: (formData: FormData) => Promise<void>;
   submitLabel: string;
 };
 
-/** Форма чек-апа: название, изображение, активность. */
-export default function CheckupForm({ checkup, action, deleteAction, submitLabel }: Props) {
+/** Форма чек-апа: название, категория, изображение, активность. */
+export default function CheckupForm({ checkup, categories, action, deleteAction, submitLabel }: Props) {
   const imageUrl = checkup?.image_url ?? '';
   const previewUrl = adminAssetUrl(imageUrl);
 
@@ -38,6 +40,22 @@ export default function CheckupForm({ checkup, action, deleteAction, submitLabel
           placeholder="Например: Близость"
           required
         />
+      </label>
+
+      <label>
+        <span>Категория</span>
+        <select name="categoryId" defaultValue={checkup?.category_id ?? ''}>
+          <option value="">Без категории (только по расписанию)</option>
+          {categories.map(category => (
+            <option key={category.id} value={category.id}>
+              {category.title}
+            </option>
+          ))}
+        </select>
+        <small>
+          Чек-ап с категорией виден в ней в Пульсе и доступен в любой момент; результат
+          обновляется в рамках календарного месяца.
+        </small>
       </label>
 
       <label>

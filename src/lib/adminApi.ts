@@ -424,11 +424,15 @@ export interface AdminBoostRecommendation {
 
 export interface AdminCheckupCollection {
   id: string;
+  /** Категория в Пульсе; null — чек-ап вне категорий (только для расписания). */
+  category_id: string | null;
   title: string;
   image_url: string | null;
   sort: number;
   active: boolean;
   question_count: number;
+  /** Название категории — приходит только в списке (join на сервере). */
+  category_title?: string | null;
 }
 
 export type AdminCheckupCollectionDetail = AdminCheckupCollection & {

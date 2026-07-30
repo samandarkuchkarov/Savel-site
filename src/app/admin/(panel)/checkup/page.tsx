@@ -60,6 +60,7 @@ export default async function AdminCheckupPage() {
               <tr>
                 <th>Изображение</th>
                 <th>Название</th>
+                <th>Категория</th>
                 <th>Вопросов</th>
                 <th>Порядок</th>
                 <th>Статус</th>
@@ -77,6 +78,13 @@ export default async function AdminCheckupPage() {
                     )}
                   </td>
                   <td>{checkup.title}</td>
+                  <td>
+                    {checkup.category_title ?? (
+                      <span className="mutedFaint" title="Доступен только через расписание">
+                        без категории
+                      </span>
+                    )}
+                  </td>
                   <td>{checkup.question_count}</td>
                   <td>
                     <form action={moveCheckup} className="sortCell">
@@ -119,7 +127,7 @@ export default async function AdminCheckupPage() {
               ))}
               {checkups.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ color: 'var(--text-soft)' }}>
+                  <td colSpan={7} style={{ color: 'var(--text-soft)' }}>
                     Пока нет ни одного чек-апа — создайте первый.
                   </td>
                 </tr>
