@@ -91,29 +91,32 @@ export default async function AdminBoostPage() {
                         <td>{rec.title}</td>
                         <td style={{ color: 'var(--text-soft)' }}>{rec.subtitle ?? '—'}</td>
                         <td>
-                          <form action={moveRec} className="sortCell">
-                            <input type="hidden" name="id" value={rec.id} />
-                            <button
-                              className="sortBtn"
-                              type="submit"
-                              name="direction"
-                              value="up"
-                              disabled={index === 0}
-                              title="Поднять выше"
-                              aria-label={`Поднять «${rec.title}» выше`}>
-                              ↑
-                            </button>
-                            <button
-                              className="sortBtn"
-                              type="submit"
-                              name="direction"
-                              value="down"
-                              disabled={index === items.length - 1}
-                              title="Опустить ниже"
-                              aria-label={`Опустить «${rec.title}» ниже`}>
-                              ↓
-                            </button>
-                          </form>
+                          <div className="sortCell">
+                            <form action={moveRec}>
+                              <input type="hidden" name="id" value={rec.id} />
+                              <input type="hidden" name="direction" value="up" />
+                              <button
+                                className="sortBtn"
+                                type="submit"
+                                disabled={index === 0}
+                                title="Поднять выше"
+                                aria-label={`Поднять «${rec.title}» выше`}>
+                                ↑
+                              </button>
+                            </form>
+                            <form action={moveRec}>
+                              <input type="hidden" name="id" value={rec.id} />
+                              <input type="hidden" name="direction" value="down" />
+                              <button
+                                className="sortBtn"
+                                type="submit"
+                                disabled={index === items.length - 1}
+                                title="Опустить ниже"
+                                aria-label={`Опустить «${rec.title}» ниже`}>
+                                ↓
+                              </button>
+                            </form>
+                          </div>
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

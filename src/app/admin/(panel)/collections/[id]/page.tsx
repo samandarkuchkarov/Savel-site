@@ -127,6 +127,9 @@ async function moveQuestion(formData: FormData) {
   const detail = await adminApi<AdminCollectionDetail>(`/collections/${collectionId}`);
   const list = detail.questions;
   const index = list.findIndex(question => question.id === questionId);
+  // Только явные 'up'/'down'. Тернарник «не up → вниз» превращал ПОТЕРЮ
+  // значения в молчаливый сдвиг вниз: обе стрелки опускали элемент.
+  if (direction !== 'up' && direction !== 'down') return;
   const target = direction === 'up' ? index - 1 : index + 1;
   if (index === -1 || target < 0 || target >= list.length) return;
   const next = [...list];

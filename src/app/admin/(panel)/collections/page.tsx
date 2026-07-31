@@ -17,6 +17,9 @@ async function moveCollection(formData: FormData) {
   const direction = String(formData.get('direction') ?? '');
   const list = await adminApi<AdminCollection[]>('/collections');
   const index = list.findIndex(collection => collection.id === id);
+  // Только явные 'up'/'down'. Тернарник «не up → вниз» превращал ПОТЕРЮ
+  // значения в молчаливый сдвиг вниз: обе стрелки опускали элемент.
+  if (direction !== 'up' && direction !== 'down') return;
   const target = direction === 'up' ? index - 1 : index + 1;
   if (index === -1 || target < 0 || target >= list.length) return;
   const next = [...list];
@@ -107,29 +110,32 @@ export default async function AdminCollectionsPage({ searchParams }: Props) {
                   <td>{collection.category_title ?? <span className="pill pillMuted">без категории</span>}</td>
                   <td>{collection.question_count}</td>
                   <td>
-                    <form action={moveCollection} className="sortCell">
-                      <input type="hidden" name="id" value={collection.id} />
-                      <button
-                        className="sortBtn"
-                        type="submit"
-                        name="direction"
-                        value="up"
-                        disabled={index === 0}
-                        title="Поднять выше"
-                        aria-label={`Поднять «${collection.title}» выше`}>
-                        ↑
-                      </button>
-                      <button
-                        className="sortBtn"
-                        type="submit"
-                        name="direction"
-                        value="down"
-                        disabled={index === collections.length - 1}
-                        title="Опустить ниже"
-                        aria-label={`Опустить «${collection.title}» ниже`}>
-                        ↓
-                      </button>
-                    </form>
+                    <div className="sortCell">
+                      <form action={moveCollection}>
+                        <input type="hidden" name="id" value={collection.id} />
+                        <input type="hidden" name="direction" value="up" />
+                        <button
+                          className="sortBtn"
+                          type="submit"
+                          disabled={index === 0}
+                          title="Поднять выше"
+                          aria-label={`Поднять «${collection.title}» выше`}>
+                          ↑
+                        </button>
+                      </form>
+                      <form action={moveCollection}>
+                        <input type="hidden" name="id" value={collection.id} />
+                        <input type="hidden" name="direction" value="down" />
+                        <button
+                          className="sortBtn"
+                          type="submit"
+                          disabled={index === collections.length - 1}
+                          title="Опустить ниже"
+                          aria-label={`Опустить «${collection.title}» ниже`}>
+                          ↓
+                        </button>
+                      </form>
+                    </div>
                   </td>
                   <td>
                     {collection.active ? (

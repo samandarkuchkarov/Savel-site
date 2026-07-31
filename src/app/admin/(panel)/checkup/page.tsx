@@ -17,6 +17,9 @@ async function moveCheckup(formData: FormData) {
   const direction = String(formData.get('direction') ?? '');
   const list = await adminApi<AdminCheckupCollection[]>('/checkup-collections');
   const index = list.findIndex(c => c.id === id);
+  // Только явные 'up'/'down'. Тернарник «не up → вниз» превращал ПОТЕРЮ
+  // значения в молчаливый сдвиг вниз: обе стрелки опускали элемент.
+  if (direction !== 'up' && direction !== 'down') return;
   const target = direction === 'up' ? index - 1 : index + 1;
   if (index === -1 || target < 0 || target >= list.length) return;
   const next = [...list];
@@ -110,29 +113,32 @@ export default async function AdminCheckupPage({ searchParams }: Props) {
                   </td>
                   <td>{checkup.question_count}</td>
                   <td>
-                    <form action={moveCheckup} className="sortCell">
-                      <input type="hidden" name="id" value={checkup.id} />
-                      <button
-                        className="sortBtn"
-                        type="submit"
-                        name="direction"
-                        value="up"
-                        disabled={index === 0}
-                        title="Поднять выше"
-                        aria-label={`Поднять «${checkup.title}» выше`}>
-                        ↑
-                      </button>
-                      <button
-                        className="sortBtn"
-                        type="submit"
-                        name="direction"
-                        value="down"
-                        disabled={index === checkups.length - 1}
-                        title="Опустить ниже"
-                        aria-label={`Опустить «${checkup.title}» ниже`}>
-                        ↓
-                      </button>
-                    </form>
+                    <div className="sortCell">
+                      <form action={moveCheckup}>
+                        <input type="hidden" name="id" value={checkup.id} />
+                        <input type="hidden" name="direction" value="up" />
+                        <button
+                          className="sortBtn"
+                          type="submit"
+                          disabled={index === 0}
+                          title="Поднять выше"
+                          aria-label={`Поднять «${checkup.title}» выше`}>
+                          ↑
+                        </button>
+                      </form>
+                      <form action={moveCheckup}>
+                        <input type="hidden" name="id" value={checkup.id} />
+                        <input type="hidden" name="direction" value="down" />
+                        <button
+                          className="sortBtn"
+                          type="submit"
+                          disabled={index === checkups.length - 1}
+                          title="Опустить ниже"
+                          aria-label={`Опустить «${checkup.title}» ниже`}>
+                          ↓
+                        </button>
+                      </form>
+                    </div>
                   </td>
                   <td>
                     {checkup.active ? (

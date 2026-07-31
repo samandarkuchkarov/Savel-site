@@ -11,6 +11,9 @@ async function moveCategory(formData: FormData) {
   const direction = String(formData.get('direction') ?? '');
   const list = await adminApi<AdminCategory[]>('/categories');
   const index = list.findIndex(category => category.id === id);
+  // Только явные 'up'/'down'. Тернарник «не up → вниз» превращал ПОТЕРЮ
+  // значения в молчаливый сдвиг вниз: обе стрелки опускали элемент.
+  if (direction !== 'up' && direction !== 'down') return;
   const target = direction === 'up' ? index - 1 : index + 1;
   if (index === -1 || target < 0 || target >= list.length) return;
   const next = [...list];
@@ -80,29 +83,32 @@ export default async function AdminCategoriesPage() {
                   <td>{category.subtitle || '—'}</td>
                   <td>{category.id}</td>
                   <td>
-                    <form action={moveCategory} className="sortCell">
-                      <input type="hidden" name="id" value={category.id} />
-                      <button
-                        className="sortBtn"
-                        type="submit"
-                        name="direction"
-                        value="up"
-                        disabled={index === 0}
-                        title="Поднять выше"
-                        aria-label={`Поднять «${category.title}» выше`}>
-                        ↑
-                      </button>
-                      <button
-                        className="sortBtn"
-                        type="submit"
-                        name="direction"
-                        value="down"
-                        disabled={index === categories.length - 1}
-                        title="Опустить ниже"
-                        aria-label={`Опустить «${category.title}» ниже`}>
-                        ↓
-                      </button>
-                    </form>
+                    <div className="sortCell">
+                      <form action={moveCategory}>
+                        <input type="hidden" name="id" value={category.id} />
+                        <input type="hidden" name="direction" value="up" />
+                        <button
+                          className="sortBtn"
+                          type="submit"
+                          disabled={index === 0}
+                          title="Поднять выше"
+                          aria-label={`Поднять «${category.title}» выше`}>
+                          ↑
+                        </button>
+                      </form>
+                      <form action={moveCategory}>
+                        <input type="hidden" name="id" value={category.id} />
+                        <input type="hidden" name="direction" value="down" />
+                        <button
+                          className="sortBtn"
+                          type="submit"
+                          disabled={index === categories.length - 1}
+                          title="Опустить ниже"
+                          aria-label={`Опустить «${category.title}» ниже`}>
+                          ↓
+                        </button>
+                      </form>
+                    </div>
                   </td>
                   <td>
                     {category.active ? (
