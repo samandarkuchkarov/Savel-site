@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; q?: string }>;
 };
 
 function parseVariants(raw: FormDataEntryValue | null): string[] {
@@ -103,7 +103,9 @@ async function saveQuestion(formData: FormData): Promise<void> {
     // Самая частая ошибка здесь — разное число вариантов у языков; молчаливый
     // провал выглядел бы как «сохранилось», хотя вопрос остался прежним.
     const message = error instanceof Error ? error.message : 'Не удалось сохранить';
-    redirect(`/admin/collections/${collectionId}?error=` + encodeURIComponent(message));
+    redirect(
+      `/admin/collections/${collectionId}?error=${encodeURIComponent(message)}&q=${questionId}`,
+    );
   }
   revalidatePath(`/admin/collections/${collectionId}`);
 }
@@ -140,7 +142,7 @@ async function moveQuestion(formData: FormData) {
 
 export default async function EditCollectionPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, q: openId } = await searchParams;
   let collection: AdminCollectionDetail;
   let categories: AdminCategory[];
   try {
@@ -176,32 +178,43 @@ export default async function EditCollectionPage({ params, searchParams }: Props
       </p>
 
       {collection.questions.map((question, index) => (
-        <div key={question.id} className="statCard questionCard">
-          <form action={saveQuestion} className="questionCardMain adminForm">
-            <input type="hidden" name="collectionId" value={collection.id} />
-            <input type="hidden" name="questionId" value={question.id} />
-            <TrField
-              label={`Вопрос ${index + 1}`}
-              name="text"
-              ru={question.text}
-              uz={question.text_uz}
-              en={question.text_en}
-              required
-            />
-            <TrField
-              label="Варианты ответов — каждый с новой строки (пусто = свободный ответ)"
-              name="variants"
-              textarea
-              rows={Math.max(4, question.variants.length + 2)}
-              ru={question.variants.join('\n')}
-              uz={question.variants_uz?.join('\n')}
-              en={question.variants_en?.join('\n')}
-            />
-            <button className="adminBtn" type="submit">
-              Сохранить
-            </button>
-          </form>
-          <div className="questionCardActions">
+        <div key={question.id} className="rowItem">
+          {/* Свёрнуто — только русский текст: список из 5–12 вопросов должен
+              читаться сразу, а переводы и варианты нужны только при правке. */}
+          <details className="statCard rowCard" open={openId === question.id}>
+            <summary className="rowHead">
+              <span className="rowNum">{index + 1}</span>
+              <span className="rowTitle">{question.text}</span>
+              <span className="rowToggle">Редактировать</span>
+            </summary>
+            <form action={saveQuestion} className="rowBody adminForm">
+              <input type="hidden" name="collectionId" value={collection.id} />
+              <input type="hidden" name="questionId" value={question.id} />
+              <TrField
+                label="Текст вопроса"
+                name="text"
+                ru={question.text}
+                uz={question.text_uz}
+                en={question.text_en}
+                required
+              />
+              <TrField
+                label="Варианты ответов — каждый с новой строки (пусто = свободный ответ)"
+                name="variants"
+                textarea
+                rows={Math.max(4, question.variants.length + 2)}
+                ru={question.variants.join('\n')}
+                uz={question.variants_uz?.join('\n')}
+                en={question.variants_en?.join('\n')}
+              />
+              <button className="adminBtn" type="submit">
+                Сохранить
+              </button>
+            </form>
+          </details>
+          {/* Стрелки и удаление — СНАРУЖИ details: это отдельные формы, а внутри
+              summary любой клик по ним ещё и схлопывал бы карточку. */}
+          <div className="rowSide">
             <form action={moveQuestion}>
               <input type="hidden" name="collectionId" value={collection.id} />
               <input type="hidden" name="questionId" value={question.id} />

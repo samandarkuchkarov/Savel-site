@@ -843,3 +843,69 @@
 @media (max-width: 860px) {
   .trFieldGrid { grid-template-columns: 1fr; }
 }
+
+/* Свёрнутая строка контента: русский текст + правка по требованию.
+   details, а не клиентский стейт: страница серверная, JS для раскрытия не нужен. */
+.rowItem { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.rowCard { flex: 1; min-width: 0; padding: 0; }
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.rowHead::-webkit-details-marker { display: none; }
+.rowHead:hover > .rowToggle { color: var(--coral); border-color: rgba(var(--coral-rgb), 0.35); }
+.rowHead > .rowNum {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: rgba(var(--coral-rgb), 0.1);
+  color: var(--coral);
+  font-weight: 900;
+  font-size: 13px;
+}
+.rowHead > .rowNumOff { background: rgba(60, 40, 40, 0.06); color: var(--text-hint); }
+/* Одна строка: список сканируют, а не читают — длинный текст обрезаем. */
+.rowHead > .rowTitle {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 14px;
+}
+.rowHead > .rowToggle {
+  flex: none;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 6px 12px;
+  color: var(--text-muted);
+  font-weight: 800;
+  font-size: 12.5px;
+}
+details[open] > .rowHead .rowToggle::after { content: ' ▴'; }
+details:not([open]) > .rowHead .rowToggle::after { content: ' ▾'; }
+.rowBody {
+  display: grid;
+  gap: 12px;
+  padding: 4px 16px 16px;
+  border-top: 1px solid var(--divider);
+  margin-top: 2px;
+  padding-top: 14px;
+}
+.rowBody > .adminBtn { justify-self: start; }
+.rowBodyActions { display: flex; align-items: center; gap: 14px; }
+.rowSide { display: flex; align-items: center; gap: 8px; padding-top: 8px; }
+@media (max-width: 720px) {
+  .rowItem { flex-direction: column; }
+  .rowSide { padding-top: 0; }
+}

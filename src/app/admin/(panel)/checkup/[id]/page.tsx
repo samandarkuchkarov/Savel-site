@@ -147,52 +147,62 @@ export default async function EditCheckupPage({ params, searchParams }: Props) {
 
       <h2 className="adminH2">Утверждения ({checkup.questions.length})</h2>
 
-      <div className="checkupList">
-        {checkup.questions.map((question, index) => (
-          <div key={question.id} className="checkupItem">
-            <div className="checkupOrder">
-              <form action={moveQuestion}>
-                <input type="hidden" name="checkupId" value={checkup.id} />
-                <input type="hidden" name="questionId" value={question.id} />
-                <input type="hidden" name="direction" value="up" />
-                <button className="sortBtn" type="submit" disabled={index === 0} title="Выше">
-                  ↑
-                </button>
-              </form>
-              <form action={moveQuestion}>
-                <input type="hidden" name="checkupId" value={checkup.id} />
-                <input type="hidden" name="questionId" value={question.id} />
-                <input type="hidden" name="direction" value="down" />
-                <button
-                  className="sortBtn"
-                  type="submit"
-                  disabled={index === checkup.questions.length - 1}
-                  title="Ниже">
-                  ↓
-                </button>
-              </form>
-            </div>
-            <span className={`checkupNum${question.active ? '' : ' checkupNumOff'}`}>
-              {index + 1}
-            </span>
-            <form action={saveQuestion} className="checkupForm">
+      {checkup.questions.map((question, index) => (
+        <div key={question.id} className="rowItem">
+          {/* Свёрнуто — только русское утверждение: чек-ап читается списком, а
+              переводы нужны в момент правки. Выключенное видно и свёрнутым. */}
+          <details className="statCard rowCard">
+            <summary className="rowHead">
+              <span className={`rowNum${question.active ? '' : ' rowNumOff'}`}>{index + 1}</span>
+              <span className="rowTitle">{question.text}</span>
+              {question.active ? null : <span className="pill pillMuted">выкл</span>}
+              <span className="rowToggle">Редактировать</span>
+            </summary>
+            <form action={saveQuestion} className="rowBody adminForm">
               <input type="hidden" name="checkupId" value={checkup.id} />
               <input type="hidden" name="questionId" value={question.id} />
               <TrField
+                label="Текст утверждения"
                 name="text"
                 ru={question.text}
                 uz={question.text_uz}
                 en={question.text_en}
                 required
               />
-              <label className="checkupActive">
-                <input type="checkbox" name="active" defaultChecked={question.active} /> Активен
-              </label>
-              <button className="adminBtn" type="submit">
-                Сохранить
+              <div className="rowBodyActions">
+                <label className="checkupActive">
+                  <input type="checkbox" name="active" defaultChecked={question.active} /> Активен
+                </label>
+                <button className="adminBtn" type="submit">
+                  Сохранить
+                </button>
+              </div>
+            </form>
+          </details>
+          {/* Стрелки и удаление — СНАРУЖИ details: это отдельные формы, а внутри
+              summary любой клик по ним ещё и схлопывал бы карточку. */}
+          <div className="rowSide">
+            <form action={moveQuestion}>
+              <input type="hidden" name="checkupId" value={checkup.id} />
+              <input type="hidden" name="questionId" value={question.id} />
+              <input type="hidden" name="direction" value="up" />
+              <button className="sortBtn" type="submit" disabled={index === 0} title="Выше">
+                ↑
               </button>
             </form>
-            <form action={deleteQuestion} className="checkupDelete">
+            <form action={moveQuestion}>
+              <input type="hidden" name="checkupId" value={checkup.id} />
+              <input type="hidden" name="questionId" value={question.id} />
+              <input type="hidden" name="direction" value="down" />
+              <button
+                className="sortBtn"
+                type="submit"
+                disabled={index === checkup.questions.length - 1}
+                title="Ниже">
+                ↓
+              </button>
+            </form>
+            <form action={deleteQuestion}>
               <input type="hidden" name="checkupId" value={checkup.id} />
               <input type="hidden" name="questionId" value={question.id} />
               <ConfirmButton
@@ -203,8 +213,8 @@ export default async function EditCheckupPage({ params, searchParams }: Props) {
               </ConfirmButton>
             </form>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
       <h2 className="adminH2">Добавить утверждение</h2>
       <form action={addQuestion} className="checkupItem checkupAdd">
