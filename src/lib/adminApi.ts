@@ -265,6 +265,15 @@ export interface AdminUser {
   tokens: number;
   /** Оценка расходов на ИИ в долларах (по прайсу моделей на сервере). */
   cost_usd: number;
+  /** С чего вошли: 'ios' | 'android'. null — вход был до появления поля. */
+  platform: string | null;
+}
+
+/** Подпись платформы для админки. null — данных нет, и это отдельное состояние. */
+export function platformLabel(platform: string | null | undefined): string {
+  if (platform === 'ios') return 'iOS';
+  if (platform === 'android') return 'Android';
+  return '—';
 }
 
 /** Человекочитаемая подпись источников Savel+ (для tooltip). */
@@ -356,6 +365,12 @@ export interface AdminUserDetail {
   partner_id: string | null;
   partner_name: string | null;
   providers: string | null;
+  /** Платформа последнего входа; null — вход был до появления поля. */
+  platform: string | null;
+  /** Когда входили в последний раз (ISO). */
+  last_login_at: string | null;
+  /** Все платформы через запятую — если заходили и с айфона, и с андроида. */
+  platforms: string | null;
   subscriptions: AdminSubscriptionEvent[];
   couple: AdminUserCouple | null;
   chats: AdminChatThread[];

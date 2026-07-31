@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
 import {
   adminApi,
+  platformLabel,
   type AdminSubscriptionEvent,
   type AdminUserDetail,
 } from '@/lib/adminApi';
@@ -145,6 +146,22 @@ export default async function AdminUserPage({ params }: Props) {
             Код {user.pair_code} · вход через {user.providers || '—'} ·{' '}
             {user.partner_name ? `в паре с ${user.partner_name}` : 'не в паре'} · регистрация{' '}
             {dateTimeRu(user.created_at)}
+          </p>
+          {/* Платформа отдельной строкой, а не в общем перечислении выше: это
+              единственное здесь, что относится к устройству, а не к аккаунту. */}
+          <p className="adminSub userPlatform">
+            {user.platform ? (
+              <span className={`pill ${user.platform === 'ios' ? 'pillIos' : 'pillAndroid'}`}>
+                {platformLabel(user.platform)}
+              </span>
+            ) : (
+              <span className="pill pillMuted">платформа неизвестна</span>
+            )}
+            {user.last_login_at && <> последний вход {dateTimeRu(user.last_login_at)}</>}
+            {/* Две платформы сразу — человек заходил с обоих устройств. */}
+            {user.platforms && user.platforms.split(',').length > 1 && (
+              <> · заходил также с {platformLabel(user.platforms.split(',').find(p => p !== user.platform))}</>
+            )}
           </p>
         </div>
         <Link className="adminGhostLink" href="/admin/users">

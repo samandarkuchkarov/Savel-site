@@ -1,5 +1,12 @@
 import Link from 'next/link';
-import { adminApi, formatUsd, plusSourcesLabel, type AdminPage, type AdminUser } from '@/lib/adminApi';
+import {
+  adminApi,
+  formatUsd,
+  platformLabel,
+  plusSourcesLabel,
+  type AdminPage,
+  type AdminUser,
+} from '@/lib/adminApi';
 import Pagination from '../Pagination';
 import AdminError from '../AdminError';
 import { ListSearch, SortHeader } from '../ListToolbar';
@@ -57,6 +64,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                     desc="name_desc"
                     first="asc"
                   />
+                  <th>Платформа</th>
                   <th>Email</th>
                   <th>Пара</th>
                   <th>Savel+</th>
@@ -82,6 +90,15 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                   <tr key={user.id}>
                     <td className="numCell muted">{(data.page - 1) * data.limit + i + 1}</td>
                     <td>{user.name || '—'}</td>
+                    <td>
+                      {user.platform ? (
+                        <span className={`pill ${user.platform === 'ios' ? 'pillIos' : 'pillAndroid'}`}>
+                          {platformLabel(user.platform)}
+                        </span>
+                      ) : (
+                        <span className="mutedFaint">—</span>
+                      )}
+                    </td>
                     <td>{user.email || <span className="mutedFaint">—</span>}</td>
                     <td>
                       {user.paired ? (

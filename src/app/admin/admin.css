@@ -984,3 +984,10 @@ details:not([open]) > .rowHead .rowToggle::after { content: ' ▾'; }
 .sysFacts > .sysBad i { color: var(--danger); }
 .sysFacts > .sysGood { border-color: rgba(47, 190, 126, 0.35); background: var(--success-bg); }
 .sysFacts > .sysGood b { color: var(--success-dark); }
+
+/* Платформа входа: iOS/Android в списке пользователей и в его карточке.
+   Обе метки одного нейтрального цвета НАМЕРЕННО: зелёный в этой панели значит
+   «хорошо» (есть пара, Savel+), а платформа — не достижение и не проблема.
+   Различает их слово, а не оттенок. */
+.pillIos, .pillAndroid { background: var(--tint-neutral); color: var(--text-neutral); }
+.userPlatform { display: flex; align-items: center; gap: 6px; margin-top: -12px; }
