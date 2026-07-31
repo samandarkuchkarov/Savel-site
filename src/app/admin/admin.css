@@ -909,3 +909,70 @@ details:not([open]) > .rowHead .rowToggle::after { content: ' ▾'; }
   .rowItem { flex-direction: column; }
   .rowSide { padding-top: 0; }
 }
+
+/* ── Раздел «Сервер»: живой монитор CPU/памяти ───────────────────────── */
+
+.sysWrap { display: flex; flex-direction: column; gap: 14px; }
+
+.sysHead {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.sysHead > div { display: flex; flex-direction: column; gap: 2px; }
+.sysHead b { font-size: 15px; font-weight: 900; }
+.sysHead span { font-size: 12.5px; font-weight: 700; color: var(--text-hint); }
+
+/* Индикатор связи: цвет дублируется словом — различать состояния только по
+   цвету нельзя (и при дальтонизме, и когда точка просто не замечена). */
+.sysLive {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 800; color: var(--success-dark);
+  background: var(--success-bg); border-radius: 999px; padding: 5px 12px 5px 10px;
+}
+.sysLive::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--success-bright); animation: sysPulse 2s ease-in-out infinite;
+}
+.sysLiveOff { color: var(--danger); background: var(--danger-bg); }
+.sysLiveOff::before { background: var(--danger); animation: none; }
+@keyframes sysPulse { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .sysLive::before { animation: none; } }
+
+.sysGraphs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 900px) { .sysGraphs { grid-template-columns: 1fr; } }
+
+.sysCard {
+  background: #fff; border: 1px solid var(--border); border-radius: 16px;
+  padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 10px;
+}
+.sysCard header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sysLabel { font-size: 12px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-hint); }
+/* tabular-nums: цифра раз в секунду прыгает, и без моноширинных знаков
+   заголовок дёргался бы по ширине на каждом тике. */
+.sysValue { font-size: 30px; font-weight: 900; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.sysValue i { font-style: normal; font-size: 16px; font-weight: 800; color: var(--text-hint); margin-left: 2px; }
+
+.sysChart { width: 100%; height: 120px; display: block; }
+.sysChartEmpty {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12.5px; font-weight: 700; color: var(--text-faint);
+  background: var(--tint-cream); border-radius: 10px;
+}
+.sysGrid { stroke: var(--divider); stroke-width: 1; stroke-dasharray: 3 4; }
+
+.sysCard footer {
+  display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  font-size: 12.5px; font-weight: 700; color: var(--text-muted);
+  border-top: 1px solid var(--divider); padding-top: 9px;
+}
+.sysCard footer b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.sysWarn { color: var(--warning-ink-strong); }
+
+.sysFacts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 900px) { .sysFacts { grid-template-columns: repeat(2, 1fr); } }
+.sysFacts > div {
+  background: #fff; border: 1px solid var(--border); border-radius: 14px;
+  padding: 12px 13px; display: flex; flex-direction: column; gap: 3px; min-width: 0;
+}
+.sysFacts span { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-hint); }
+.sysFacts b { font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.sysFacts i { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--text-faint-2); }

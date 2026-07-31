@@ -58,6 +58,7 @@ const GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/schedule', label: 'Расписание' },
       { href: '/admin/settings', label: 'Значения' },
+      { href: '/admin/server', label: 'Сервер' },
     ],
   },
 ];
