@@ -57,16 +57,28 @@ async function deleteCategory(formData: FormData) {
   redirect('/admin/categories');
 }
 
+/** Содержимое категории одним списком в том порядке, в каком его видит приложение. */
+async function categoryContent(categoryId: string) {
+  const [collections, checkups] = await Promise.all([
+    adminApi<AdminCollection[]>(`/categories/${encodeURIComponent(categoryId)}/collections`),
+    adminApi<AdminCheckupCollection[]>(
+      `/categories/${encodeURIComponent(categoryId)}/checkup-collections`,
+    ),
+  ]);
+  const merged = [
+    ...collections.map(c => ({ kind: 'collection' as const, row: c })),
+    ...checkups.map(c => ({ kind: 'checkup' as const, row: c })),
+  ].sort((a, b) => a.row.sort - b.row.sort);
+  return { collections, checkups, merged };
+}
+
 /**
- * Порядок внутри категории. Подборки и чек-апы — РАЗНЫЕ таблицы со своим sort,
- * и в приложении категория показывает сначала подборки, потом чек-апы, поэтому
- * стрелка двигает элемент только среди своего типа: «поднять чек-ап выше
- * последней подборки» смысла не имеет.
+ * Порядок внутри категории — ОБЩИЙ для подборок и чек-апов: приложение
+ * показывает их единым списком, поэтому чек-ап может стоять между подборками.
  *
- * Меняем местами позиции двух элементов в ПОЛНОМ списке типа, а не нумеруем
- * заново только эту категорию: /reorder присваивает sort по позиции в массиве,
- * и передав 15 id мы задали бы им sort 1..15, сдвинув категорию в начало общего
- * списка. Перестановка внутри полного массива меняет sort ровно у двух строк.
+ * Шлём порядок ЦЕЛИКОМ в /categories/:id/content-order: sort — сквозная
+ * нумерация по двум таблицам, и обычный /reorder (одна таблица = одна
+ * последовательность) её бы разорвал.
  */
 async function moveInCategory(formData: FormData) {
   'use server';
@@ -77,36 +89,20 @@ async function moveInCategory(formData: FormData) {
   if (direction !== 'up' && direction !== 'down') return;
   if (kind !== 'collection' && kind !== 'checkup') return;
 
-  const isCollection = kind === 'collection';
-  const listPath = isCollection ? '/collections' : '/checkup-collections';
-  const catPath = isCollection
-    ? `/categories/${encodeURIComponent(categoryId)}/collections`
-    : `/categories/${encodeURIComponent(categoryId)}/checkup-collections`;
+  const { merged } = await categoryContent(categoryId);
+  const i = merged.findIndex(x => x.kind === kind && x.row.id === id);
+  const j = direction === 'up' ? i - 1 : i + 1;
+  if (i === -1 || j < 0 || j >= merged.length) return;
+  const next = [...merged];
+  [next[i], next[j]] = [next[j], next[i]];
 
-  const [all, inCategory] = await Promise.all([
-    adminApi<{ id: string }[]>(listPath),
-    adminApi<{ id: string }[]>(catPath),
-  ]);
-  // Сосед — по порядку ВНУТРИ категории (в общем списке между ними лежит чужое).
-  const here = inCategory.findIndex(x => x.id === id);
-  const neighbour = inCategory[direction === 'up' ? here - 1 : here + 1];
-  if (here === -1 || !neighbour) return;
-
-  const next = [...all];
-  const a = next.findIndex(x => x.id === id);
-  const b = next.findIndex(x => x.id === neighbour.id);
-  if (a === -1 || b === -1) return;
-  [next[a], next[b]] = [next[b], next[a]];
-
-  await adminApi('/reorder', {
+  await adminApi(`/categories/${encodeURIComponent(categoryId)}/content-order`, {
     method: 'POST',
-    body: JSON.stringify({
-      entity: isCollection ? 'collections' : 'checkups',
-      ids: next.map(item => item.id),
-    }),
+    body: JSON.stringify({ items: next.map(x => ({ kind: x.kind, id: x.row.id })) }),
   });
   revalidatePath(`/admin/categories/${categoryId}`);
-  revalidatePath(isCollection ? '/admin/collections' : '/admin/checkup');
+  revalidatePath('/admin/collections');
+  revalidatePath('/admin/checkup');
 }
 
 /** Отвязать подборку от категории (сама подборка и её вопросы остаются). */
@@ -139,56 +135,33 @@ export default async function EditCategoryPage({ params, searchParams }: Props) 
   const { id } = await params;
   const query = parseListQuery(await searchParams);
   let category: AdminCategory;
-  let collections: AdminCollection[];
-  let checkups: AdminCheckupCollection[];
+  let content: Awaited<ReturnType<typeof categoryContent>>;
   try {
-    [category, collections, checkups] = await Promise.all([
+    [category, content] = await Promise.all([
       adminApi<AdminCategory>(`/categories/${encodeURIComponent(id)}`),
-      adminApi<AdminCollection[]>(`/categories/${encodeURIComponent(id)}/collections`),
-      adminApi<AdminCheckupCollection[]>(
-        `/categories/${encodeURIComponent(id)}/checkup-collections`,
-      ),
+      categoryContent(id),
     ]);
   } catch {
     notFound();
   }
 
-  // Подборки и чек-апы — одной таблицей: раздельные секции читались как два
-  // экрана, а разницу типов достаточно нести бейджу в колонке «Тип».
-  const items = [
-    ...collections.map(c => ({
-      kind: 'collection' as const,
-      id: c.id,
-      title: c.title,
-      image_url: c.image_url,
-      question_count: c.question_count,
-      active: c.active,
-      href: `/admin/collections/${c.id}`,
-    })),
-    ...checkups.map(c => ({
-      kind: 'checkup' as const,
-      id: c.id,
-      title: c.title,
-      image_url: c.image_url,
-      question_count: c.question_count,
-      active: c.active,
-      href: `/admin/checkup/${c.id}`,
-    })),
-  ];
+  // Подборки и чек-апы — одной таблицей и в ОДНОМ порядке: ровно то, что
+  // приложение покажет в категории. Тип несёт бейдж в колонке «Тип».
+  const items = content.merged.map(({ kind, row }) => ({
+    kind,
+    id: row.id,
+    title: row.title,
+    image_url: row.image_url,
+    question_count: row.question_count,
+    active: row.active,
+    href: kind === 'collection' ? `/admin/collections/${row.id}` : `/admin/checkup/${row.id}`,
+  }));
   const basePath = `/admin/categories/${encodeURIComponent(id)}`;
   const view = sliceList(items, query, (item, needle) => matchesText(needle, item.title));
-  // Границы считаем в СВОЁМ типе и по полному списку категории: на второй
-  // странице «вверх» иначе упиралось бы в её начало, а не в начало типа.
-  const posInKind = new Map(
-    items.map(item => [
-      item.id,
-      items.filter(x => x.kind === item.kind).findIndex(x => x.id === item.id),
-    ]),
-  );
-  const lastInKind = {
-    collection: collections.length - 1,
-    checkup: checkups.length - 1,
-  };
+  // Границы — по ПОЛНОМУ списку категории, а не по странице: иначе на второй
+  // странице «вверх» упиралось бы в её начало.
+  const positions = new Map(items.map((item, i) => [`${item.kind}:${item.id}`, i]));
+  const lastIndex = items.length - 1;
 
   return (
     <>
@@ -259,7 +232,7 @@ export default async function EditCategoryPage({ params, searchParams }: Props) 
                         <button
                           className="sortBtn"
                           type="submit"
-                          disabled={posInKind.get(item.id) === 0}
+                          disabled={positions.get(`${item.kind}:${item.id}`) === 0}
                           title="Поднять выше"
                           aria-label={`Поднять «${item.title}» выше`}>
                           ↑
@@ -273,7 +246,7 @@ export default async function EditCategoryPage({ params, searchParams }: Props) 
                         <button
                           className="sortBtn"
                           type="submit"
-                          disabled={posInKind.get(item.id) === lastInKind[item.kind]}
+                          disabled={positions.get(`${item.kind}:${item.id}`) === lastIndex}
                           title="Опустить ниже"
                           aria-label={`Опустить «${item.title}» ниже`}>
                           ↓

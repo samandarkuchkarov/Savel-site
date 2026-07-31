@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { revalidatePath } from 'next/cache';
 import { adminApi, adminAssetUrl, type AdminCheckupCollection } from '@/lib/adminApi';
 import { matchesText, sliceList } from '@/lib/listSlice';
 import { listHref, parseListQuery, type RawListParams } from '../listQuery';
@@ -9,29 +8,6 @@ import Pagination from '../Pagination';
 export const dynamic = 'force-dynamic';
 
 type Props = { searchParams: Promise<RawListParams> };
-
-/** Swap a checkup with its neighbour and renumber sorts 1..n. */
-async function moveCheckup(formData: FormData) {
-  'use server';
-  const id = String(formData.get('id') ?? '');
-  const direction = String(formData.get('direction') ?? '');
-  const list = await adminApi<AdminCheckupCollection[]>('/checkup-collections');
-  const index = list.findIndex(c => c.id === id);
-  // Только явные 'up'/'down'. Тернарник «не up → вниз» превращал ПОТЕРЮ
-  // значения в молчаливый сдвиг вниз: обе стрелки опускали элемент.
-  if (direction !== 'up' && direction !== 'down') return;
-  const target = direction === 'up' ? index - 1 : index + 1;
-  if (index === -1 || target < 0 || target >= list.length) return;
-  const next = [...list];
-  [next[index], next[target]] = [next[target], next[index]];
-  // Весь порядок одним запросом (одна транзакция на сервере): пачка
-  // параллельных PATCH при обрыве оставляла порядок наполовину применённым.
-  await adminApi('/reorder', {
-    method: 'POST',
-    body: JSON.stringify({ entity: 'checkups', ids: next.map(item => item.id) }),
-  });
-  revalidatePath('/admin/checkup');
-}
 
 export default async function AdminCheckupPage({ searchParams }: Props) {
   const query = parseListQuery(await searchParams);
@@ -46,9 +22,6 @@ export default async function AdminCheckupPage({ searchParams }: Props) {
   const view = sliceList(checkups, query, (c, needle) =>
     matchesText(needle, c.title, c.title_uz, c.title_en, c.category_title),
   );
-  // Позиция в ПОЛНОМ списке: стрелки двигают чек-ап среди всех, а не среди
-  // показанных, — иначе на второй странице «вверх» упиралось бы в её начало.
-  const positions = new Map(checkups.map((c, i) => [c.id, i]));
 
   return (
     <>
@@ -57,7 +30,8 @@ export default async function AdminCheckupPage({ searchParams }: Props) {
           <h1 className="adminH1">Чек-апы</h1>
           <p className="adminSub">
             Каждый чек-ап — отдельный набор утверждений, которые пара оценивает сердечками. У
-            каждого свой результат и динамика.
+            каждого свой результат и динамика. Порядок показа задаётся на странице категории —
+            там чек-апы и подборки идут одним списком.
           </p>
         </div>
         <Link className="adminBtn adminBtnLink" href="/admin/checkup/new">
@@ -86,15 +60,12 @@ export default async function AdminCheckupPage({ searchParams }: Props) {
                 <th>Название</th>
                 <th>Категория</th>
                 <th>Вопросов</th>
-                <th>Порядок</th>
                 <th>Статус</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {view.items.map(checkup => {
-                const index = positions.get(checkup.id) ?? 0;
-                return (
+              {view.items.map(checkup => (
                 <tr key={checkup.id}>
                   <td>
                     {checkup.image_url ? (
@@ -113,34 +84,6 @@ export default async function AdminCheckupPage({ searchParams }: Props) {
                   </td>
                   <td>{checkup.question_count}</td>
                   <td>
-                    <div className="sortCell">
-                      <form action={moveCheckup}>
-                        <input type="hidden" name="id" value={checkup.id} />
-                        <input type="hidden" name="direction" value="up" />
-                        <button
-                          className="sortBtn"
-                          type="submit"
-                          disabled={index === 0}
-                          title="Поднять выше"
-                          aria-label={`Поднять «${checkup.title}» выше`}>
-                          ↑
-                        </button>
-                      </form>
-                      <form action={moveCheckup}>
-                        <input type="hidden" name="id" value={checkup.id} />
-                        <input type="hidden" name="direction" value="down" />
-                        <button
-                          className="sortBtn"
-                          type="submit"
-                          disabled={index === checkups.length - 1}
-                          title="Опустить ниже"
-                          aria-label={`Опустить «${checkup.title}» ниже`}>
-                          ↓
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                  <td>
                     {checkup.active ? (
                       <span className="pill pillGreen">вкл</span>
                     ) : (
@@ -153,11 +96,10 @@ export default async function AdminCheckupPage({ searchParams }: Props) {
                     </Link>
                   </td>
                 </tr>
-                );
-              })}
+              ))}
               {view.items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ color: 'var(--text-soft)' }}>
+                  <td colSpan={6} style={{ color: 'var(--text-soft)' }}>
                     {query.q
                       ? 'Ничего не найдено — измените запрос.'
                       : 'Пока нет ни одного чек-апа — создайте первый.'}

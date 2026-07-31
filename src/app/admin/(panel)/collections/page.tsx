@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { revalidatePath } from 'next/cache';
 import { adminApi, adminAssetUrl, type AdminCollection } from '@/lib/adminApi';
 import { matchesText, sliceList } from '@/lib/listSlice';
 import { listHref, parseListQuery, type RawListParams } from '../listQuery';
@@ -9,29 +8,6 @@ import Pagination from '../Pagination';
 export const dynamic = 'force-dynamic';
 
 type Props = { searchParams: Promise<RawListParams> };
-
-/** Swap the collection with its neighbour and renumber sorts 1..n. */
-async function moveCollection(formData: FormData) {
-  'use server';
-  const id = String(formData.get('id') ?? '');
-  const direction = String(formData.get('direction') ?? '');
-  const list = await adminApi<AdminCollection[]>('/collections');
-  const index = list.findIndex(collection => collection.id === id);
-  // Только явные 'up'/'down'. Тернарник «не up → вниз» превращал ПОТЕРЮ
-  // значения в молчаливый сдвиг вниз: обе стрелки опускали элемент.
-  if (direction !== 'up' && direction !== 'down') return;
-  const target = direction === 'up' ? index - 1 : index + 1;
-  if (index === -1 || target < 0 || target >= list.length) return;
-  const next = [...list];
-  [next[index], next[target]] = [next[target], next[index]];
-  // Весь порядок одним запросом (одна транзакция на сервере): пачка
-  // параллельных PATCH при обрыве оставляла порядок наполовину применённым.
-  await adminApi('/reorder', {
-    method: 'POST',
-    body: JSON.stringify({ entity: 'collections', ids: next.map(item => item.id) }),
-  });
-  revalidatePath('/admin/collections');
-}
 
 export default async function AdminCollectionsPage({ searchParams }: Props) {
   const query = parseListQuery(await searchParams);
@@ -46,9 +22,6 @@ export default async function AdminCollectionsPage({ searchParams }: Props) {
   const view = sliceList(collections, query, (c, needle) =>
     matchesText(needle, c.title, c.title_uz, c.title_en, c.category_title),
   );
-  // Позиция в ПОЛНОМ списке: стрелки двигают подборку среди всех, а не среди
-  // показанных, — иначе на второй странице «вверх» упиралось бы в её начало.
-  const positions = new Map(collections.map((c, i) => [c.id, i]));
 
   return (
     <>
@@ -57,7 +30,8 @@ export default async function AdminCollectionsPage({ searchParams }: Props) {
           <h1 className="adminH1">Подборки вопросов</h1>
           <p className="adminSub">
             Подборка привязывается к категории и содержит вопросы с вариантами ответов —
-            правильного ответа нет, варианты помогают партнёрам узнать друг друга.
+            правильного ответа нет, варианты помогают партнёрам узнать друг друга. Порядок
+            показа задаётся на странице категории — там подборки и чек-апы идут одним списком.
           </p>
         </div>
         <Link className="adminBtn adminBtnLink" href="/admin/collections/new">
@@ -86,15 +60,12 @@ export default async function AdminCollectionsPage({ searchParams }: Props) {
                 <th>Название</th>
                 <th>Категория</th>
                 <th>Вопросов</th>
-                <th>Порядок</th>
                 <th>Статус</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {view.items.map(collection => {
-                const index = positions.get(collection.id) ?? 0;
-                return (
+              {view.items.map(collection => (
                 <tr key={collection.id}>
                   <td>
                     {collection.image_url ? (
@@ -110,34 +81,6 @@ export default async function AdminCollectionsPage({ searchParams }: Props) {
                   <td>{collection.category_title ?? <span className="pill pillMuted">без категории</span>}</td>
                   <td>{collection.question_count}</td>
                   <td>
-                    <div className="sortCell">
-                      <form action={moveCollection}>
-                        <input type="hidden" name="id" value={collection.id} />
-                        <input type="hidden" name="direction" value="up" />
-                        <button
-                          className="sortBtn"
-                          type="submit"
-                          disabled={index === 0}
-                          title="Поднять выше"
-                          aria-label={`Поднять «${collection.title}» выше`}>
-                          ↑
-                        </button>
-                      </form>
-                      <form action={moveCollection}>
-                        <input type="hidden" name="id" value={collection.id} />
-                        <input type="hidden" name="direction" value="down" />
-                        <button
-                          className="sortBtn"
-                          type="submit"
-                          disabled={index === collections.length - 1}
-                          title="Опустить ниже"
-                          aria-label={`Опустить «${collection.title}» ниже`}>
-                          ↓
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                  <td>
                     {collection.active ? (
                       <span className="pill pillGreen">вкл</span>
                     ) : (
@@ -150,11 +93,10 @@ export default async function AdminCollectionsPage({ searchParams }: Props) {
                     </Link>
                   </td>
                 </tr>
-                );
-              })}
+              ))}
               {view.items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ color: 'var(--text-soft)' }}>
+                  <td colSpan={6} style={{ color: 'var(--text-soft)' }}>
                     {query.q
                       ? 'Ничего не найдено — измените запрос.'
                       : 'Пока нет ни одной подборки — создайте первую.'}
