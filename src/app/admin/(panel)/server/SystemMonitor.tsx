@@ -31,6 +31,24 @@ interface Info {
   node: string;
   processRss: number;
   disk: { total: number; free: number; used: number; percent: number } | null;
+  backup: { ok: boolean; at: string; message: string; bytes: number; file: string } | null;
+  restoreCheck: { ok: boolean; at: string; message: string } | null;
+}
+
+/** Бэкап старше этого — уже проблема: суточный таймер пропустил запуск. */
+const BACKUP_STALE_HOURS = 36;
+
+function hoursSince(iso: string): number {
+  const ms = Date.now() - new Date(iso).getTime();
+  return Number.isFinite(ms) ? ms / 3_600_000 : Infinity;
+}
+
+function ago(iso: string): string {
+  const h = hoursSince(iso);
+  if (!Number.isFinite(h)) return 'неизвестно когда';
+  if (h < 1) return `${Math.max(1, Math.round(h * 60))} мин назад`;
+  if (h < 24) return `${Math.round(h)} ч назад`;
+  return `${Math.round(h / 24)} д назад`;
 }
 
 /** Точек на графике: 300 тиков по секунде = последние 5 минут. */
@@ -88,6 +106,14 @@ function LiveChart({ values, color }: { values: number[]; color: string }) {
       />
     </svg>
   );
+}
+
+/** Класс карточки бэкапа: нет статуса / сбой / протух → тревога. */
+function backupState(info: Info | null): string {
+  if (!info) return '';
+  const b = info.backup;
+  if (!b || !b.ok) return 'sysBad';
+  return hoursSince(b.at) > BACKUP_STALE_HOURS ? 'sysBad' : 'sysGood';
 }
 
 export default function SystemMonitor() {
@@ -178,6 +204,20 @@ export default function SystemMonitor() {
       {/* Кэш и своп рядом с памятью не случайно: без них «занято 51%» читается
           как тревога, хотя ядро отдаст кэш в ту же секунду, как он понадобится. */}
       <div className="sysFacts">
+        {/* Бэкап стоит первым и умеет краснеть: остальные карточки — справка,
+            а эта единственная сообщает о том, что уже сломалось. Молчащий
+            бэкап опаснее отсутствующего, поэтому «статуса нет» — тоже тревога. */}
+        <div className={backupState(info)}>
+          <span>Бэкап базы</span>
+          <b>{info?.backup ? ago(info.backup.at) : 'нет'}</b>
+          <i>
+            {info?.backup
+              ? `${formatBytes(info.backup.bytes)}${
+                  info.restoreCheck?.ok ? ' · разворачивается' : ' · не проверен'
+                }`
+              : 'ни одного бэкапа'}
+          </i>
+        </div>
         <div>
           <span>Кэш ядра</span>
           <b>{last ? formatBytes(last.mem.cache) : '—'}</b>

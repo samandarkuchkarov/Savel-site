@@ -967,7 +967,7 @@ details:not([open]) > .rowHead .rowToggle::after { content: ' ▾'; }
 .sysCard footer b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .sysWarn { color: var(--warning-ink-strong); }
 
-.sysFacts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.sysFacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
 @media (max-width: 900px) { .sysFacts { grid-template-columns: repeat(2, 1fr); } }
 .sysFacts > div {
   background: #fff; border: 1px solid var(--border); border-radius: 14px;
@@ -976,3 +976,11 @@ details:not([open]) > .rowHead .rowToggle::after { content: ' ▾'; }
 .sysFacts span { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-hint); }
 .sysFacts b { font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; }
 .sysFacts i { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--text-faint-2); }
+
+/* Карточка бэкапа в разделе «Сервер». Цвет всегда идёт вместе со словом
+   («нет» / «3 ч назад»): состояние не должно читаться только по оттенку. */
+.sysFacts > .sysBad { border-color: rgba(214, 69, 69, 0.35); background: var(--danger-bg); }
+.sysFacts > .sysBad b { color: var(--danger-dark); }
+.sysFacts > .sysBad i { color: var(--danger); }
+.sysFacts > .sysGood { border-color: rgba(47, 190, 126, 0.35); background: var(--success-bg); }
+.sysFacts > .sysGood b { color: var(--success-dark); }
