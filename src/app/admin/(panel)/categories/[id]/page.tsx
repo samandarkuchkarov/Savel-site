@@ -57,6 +57,58 @@ async function deleteCategory(formData: FormData) {
   redirect('/admin/categories');
 }
 
+/**
+ * Порядок внутри категории. Подборки и чек-апы — РАЗНЫЕ таблицы со своим sort,
+ * и в приложении категория показывает сначала подборки, потом чек-апы, поэтому
+ * стрелка двигает элемент только среди своего типа: «поднять чек-ап выше
+ * последней подборки» смысла не имеет.
+ *
+ * Меняем местами позиции двух элементов в ПОЛНОМ списке типа, а не нумеруем
+ * заново только эту категорию: /reorder присваивает sort по позиции в массиве,
+ * и передав 15 id мы задали бы им sort 1..15, сдвинув категорию в начало общего
+ * списка. Перестановка внутри полного массива меняет sort ровно у двух строк.
+ */
+async function moveInCategory(formData: FormData) {
+  'use server';
+  const categoryId = String(formData.get('categoryId') ?? '');
+  const id = String(formData.get('id') ?? '');
+  const kind = String(formData.get('kind') ?? '');
+  const direction = String(formData.get('direction') ?? '');
+  if (direction !== 'up' && direction !== 'down') return;
+  if (kind !== 'collection' && kind !== 'checkup') return;
+
+  const isCollection = kind === 'collection';
+  const listPath = isCollection ? '/collections' : '/checkup-collections';
+  const catPath = isCollection
+    ? `/categories/${encodeURIComponent(categoryId)}/collections`
+    : `/categories/${encodeURIComponent(categoryId)}/checkup-collections`;
+
+  const [all, inCategory] = await Promise.all([
+    adminApi<{ id: string }[]>(listPath),
+    adminApi<{ id: string }[]>(catPath),
+  ]);
+  // Сосед — по порядку ВНУТРИ категории (в общем списке между ними лежит чужое).
+  const here = inCategory.findIndex(x => x.id === id);
+  const neighbour = inCategory[direction === 'up' ? here - 1 : here + 1];
+  if (here === -1 || !neighbour) return;
+
+  const next = [...all];
+  const a = next.findIndex(x => x.id === id);
+  const b = next.findIndex(x => x.id === neighbour.id);
+  if (a === -1 || b === -1) return;
+  [next[a], next[b]] = [next[b], next[a]];
+
+  await adminApi('/reorder', {
+    method: 'POST',
+    body: JSON.stringify({
+      entity: isCollection ? 'collections' : 'checkups',
+      ids: next.map(item => item.id),
+    }),
+  });
+  revalidatePath(`/admin/categories/${categoryId}`);
+  revalidatePath(isCollection ? '/admin/collections' : '/admin/checkup');
+}
+
 /** Отвязать подборку от категории (сама подборка и её вопросы остаются). */
 async function detachCollection(formData: FormData) {
   'use server';
@@ -125,6 +177,18 @@ export default async function EditCategoryPage({ params, searchParams }: Props) 
   ];
   const basePath = `/admin/categories/${encodeURIComponent(id)}`;
   const view = sliceList(items, query, (item, needle) => matchesText(needle, item.title));
+  // Границы считаем в СВОЁМ типе и по полному списку категории: на второй
+  // странице «вверх» иначе упиралось бы в её начало, а не в начало типа.
+  const posInKind = new Map(
+    items.map(item => [
+      item.id,
+      items.filter(x => x.kind === item.kind).findIndex(x => x.id === item.id),
+    ]),
+  );
+  const lastInKind = {
+    collection: collections.length - 1,
+    checkup: checkups.length - 1,
+  };
 
   return (
     <>
@@ -161,6 +225,7 @@ export default async function EditCategoryPage({ params, searchParams }: Props) 
                 <th>Название</th>
                 <th>Тип</th>
                 <th>Вопросов</th>
+                <th>Порядок</th>
                 <th>Статус</th>
                 <th />
               </tr>
@@ -184,6 +249,38 @@ export default async function EditCategoryPage({ params, searchParams }: Props) 
                     )}
                   </td>
                   <td>{item.question_count}</td>
+                  <td>
+                    <div className="sortCell">
+                      <form action={moveInCategory}>
+                        <input type="hidden" name="categoryId" value={category.id} />
+                        <input type="hidden" name="id" value={item.id} />
+                        <input type="hidden" name="kind" value={item.kind} />
+                        <input type="hidden" name="direction" value="up" />
+                        <button
+                          className="sortBtn"
+                          type="submit"
+                          disabled={posInKind.get(item.id) === 0}
+                          title="Поднять выше"
+                          aria-label={`Поднять «${item.title}» выше`}>
+                          ↑
+                        </button>
+                      </form>
+                      <form action={moveInCategory}>
+                        <input type="hidden" name="categoryId" value={category.id} />
+                        <input type="hidden" name="id" value={item.id} />
+                        <input type="hidden" name="kind" value={item.kind} />
+                        <input type="hidden" name="direction" value="down" />
+                        <button
+                          className="sortBtn"
+                          type="submit"
+                          disabled={posInKind.get(item.id) === lastInKind[item.kind]}
+                          title="Опустить ниже"
+                          aria-label={`Опустить «${item.title}» ниже`}>
+                          ↓
+                        </button>
+                      </form>
+                    </div>
+                  </td>
                   <td>
                     {item.active ? (
                       <span className="pill pillGreen">вкл</span>
@@ -211,6 +308,13 @@ export default async function EditCategoryPage({ params, searchParams }: Props) 
                   </td>
                 </tr>
               ))}
+              {view.items.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ color: 'var(--text-soft)' }}>
+                    Ничего не найдено — измените запрос.
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>
