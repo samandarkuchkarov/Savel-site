@@ -1,8 +1,14 @@
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import { adminApi, adminAssetUrl, type AdminCheckupCollection } from '@/lib/adminApi';
+import { matchesText, sliceList } from '@/lib/listSlice';
+import { listHref, parseListQuery, type RawListParams } from '../listQuery';
+import { ListSearch } from '../ListToolbar';
+import Pagination from '../Pagination';
 
 export const dynamic = 'force-dynamic';
+
+type Props = { searchParams: Promise<RawListParams> };
 
 /** Swap a checkup with its neighbour and renumber sorts 1..n. */
 async function moveCheckup(formData: FormData) {
@@ -24,7 +30,8 @@ async function moveCheckup(formData: FormData) {
   revalidatePath('/admin/checkup');
 }
 
-export default async function AdminCheckupPage() {
+export default async function AdminCheckupPage({ searchParams }: Props) {
+  const query = parseListQuery(await searchParams);
   let checkups: AdminCheckupCollection[] = [];
   let error: string | null = null;
   try {
@@ -32,6 +39,13 @@ export default async function AdminCheckupPage() {
   } catch (e) {
     error = e instanceof Error ? e.message : 'API недоступен';
   }
+
+  const view = sliceList(checkups, query, (c, needle) =>
+    matchesText(needle, c.title, c.title_uz, c.title_en, c.category_title),
+  );
+  // Позиция в ПОЛНОМ списке: стрелки двигают чек-ап среди всех, а не среди
+  // показанных, — иначе на второй странице «вверх» упиралось бы в её начало.
+  const positions = new Map(checkups.map((c, i) => [c.id, i]));
 
   return (
     <>
@@ -54,6 +68,13 @@ export default async function AdminCheckupPage() {
           <span>{error}</span>
         </div>
       ) : (
+        <>
+        <ListSearch
+          basePath="/admin/checkup"
+          query={query}
+          placeholder="Название или категория"
+          total={view.total}
+        />
         <div className="adminTableWrap">
           <table className="adminTable">
             <thead>
@@ -68,7 +89,9 @@ export default async function AdminCheckupPage() {
               </tr>
             </thead>
             <tbody>
-              {checkups.map((checkup, index) => (
+              {view.items.map(checkup => {
+                const index = positions.get(checkup.id) ?? 0;
+                return (
                 <tr key={checkup.id}>
                   <td>
                     {checkup.image_url ? (
@@ -124,17 +147,28 @@ export default async function AdminCheckupPage() {
                     </Link>
                   </td>
                 </tr>
-              ))}
-              {checkups.length === 0 ? (
+                );
+              })}
+              {view.items.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ color: 'var(--text-soft)' }}>
-                    Пока нет ни одного чек-апа — создайте первый.
+                    {query.q
+                      ? 'Ничего не найдено — измените запрос.'
+                      : 'Пока нет ни одного чек-апа — создайте первый.'}
                   </td>
                 </tr>
               ) : null}
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={view.page}
+          limit={query.limit}
+          total={view.total}
+          pageHref={page => listHref('/admin/checkup', query, { page })}
+          sizeHref={(limit, page) => listHref('/admin/checkup', query, { limit, page })}
+        />
+        </>
       )}
     </>
   );

@@ -799,3 +799,47 @@
 }
 .trendTable summary:hover { color: var(--coral); }
 .trendTable .adminTableWrap { margin-top: 8px; box-shadow: none; border: 1.5px solid var(--tint-rose); }
+
+/* Контент на трёх языках: русский — основной, uz/en — необязательные переводы.
+   Колонки в ряд, чтобы перевод правился при виде оригинала. */
+.trField { display: grid; gap: 7px; min-width: 0; }
+.trFieldLabel {
+  padding-left: 2px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.trFieldGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+/* Форма с переводами шире обычной: три колонки в 620px — это ~190px на язык. */
+.categoryEditForm.formWide { max-width: 860px; }
+.trCell { display: grid; gap: 5px; min-width: 0; align-content: start; }
+.trCell input[type='text'] { width: 100%; }
+/* Язык — тихая метка: она ориентирует, но не спорит с содержимым поля. */
+.trLang {
+  justify-self: start;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: rgba(60, 40, 40, 0.06);
+  color: var(--text-hint);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+.trLangMain { background: rgba(var(--coral-rgb), 0.1); color: var(--coral); }
+/* В компактной строке чек-апа поле занимает всё свободное место. */
+.checkupForm .trField,
+.checkupAdd .trField { flex: 1; min-width: 0; }
+.checkupItem .trCell input[type='text'] {
+  font: inherit;
+  font-weight: 600;
+  padding: 9px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+}
+.checkupItem .trCell input[type='text']:focus { border-color: var(--coral); }
+@media (max-width: 860px) {
+  .trFieldGrid { grid-template-columns: 1fr; }
+}

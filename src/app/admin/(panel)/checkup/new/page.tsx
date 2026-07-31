@@ -8,6 +8,7 @@ import {
 } from '@/lib/adminApi';
 import CheckupForm from '../CheckupForm';
 import { toFormError, type FormState } from '@/lib/formState';
+import { trFields } from '@/lib/trFields';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,7 @@ async function createCheckup(_prev: FormState, formData: FormData): Promise<Form
       method: 'POST',
       body: JSON.stringify({
         title: String(formData.get('title') ?? '').trim(),
+        ...trFields(formData, 'title'),
         categoryId: categoryId || null,
         imageUrl: uploadedImageUrl,
         active: formData.get('active') === 'on',

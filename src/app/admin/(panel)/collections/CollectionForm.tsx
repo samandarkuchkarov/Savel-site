@@ -3,6 +3,7 @@ import { adminAssetUrl, type AdminCategory, type AdminCollection } from '@/lib/a
 import ConfirmButton from '../ConfirmButton';
 import type { FormState } from '@/lib/formState';
 import AdminForm, { SubmitButton } from '../AdminForm';
+import TrField from '../TrField';
 
 type Props = {
   collection?: AdminCollection;
@@ -24,7 +25,7 @@ export default function CollectionForm({
   const previewUrl = adminAssetUrl(imageUrl);
 
   return (
-    <AdminForm action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm formWide adminForm">
       {collection ? <input type="hidden" name="id" value={collection.id} /> : null}
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
@@ -36,16 +37,15 @@ export default function CollectionForm({
         )}
       </div>
 
-      <label>
-        <span>Название</span>
-        <input
-          type="text"
-          name="title"
-          defaultValue={collection?.title ?? ''}
-          placeholder="Например: Наши привычки"
-          required
-        />
-      </label>
+      <TrField
+        label="Название"
+        name="title"
+        ru={collection?.title}
+        uz={collection?.title_uz}
+        en={collection?.title_en}
+        placeholder="Например: Наши привычки"
+        required
+      />
 
       <label>
         <span>Категория</span>

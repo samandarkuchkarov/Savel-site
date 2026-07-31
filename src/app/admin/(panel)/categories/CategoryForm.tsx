@@ -3,6 +3,7 @@ import { adminAssetUrl, type AdminCategory } from '@/lib/adminApi';
 import type { FormState } from '@/lib/formState';
 import ConfirmButton from '../ConfirmButton';
 import AdminForm, { SubmitButton } from '../AdminForm';
+import TrField from '../TrField';
 
 type Props = {
   category?: AdminCategory;
@@ -16,7 +17,7 @@ export default function CategoryForm({ category, action, deleteAction, submitLab
   const previewUrl = adminAssetUrl(imageUrl);
 
   return (
-    <AdminForm action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm formWide adminForm">
       {category ? <input type="hidden" name="id" value={category.id} /> : null}
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
@@ -41,15 +42,22 @@ export default function CategoryForm({ category, action, deleteAction, submitLab
         />
       </label>
 
-      <label>
-        <span>Название</span>
-        <input type="text" name="title" defaultValue={category?.title ?? ''} required />
-      </label>
+      <TrField
+        label="Название"
+        name="title"
+        ru={category?.title}
+        uz={category?.title_uz}
+        en={category?.title_en}
+        required
+      />
 
-      <label>
-        <span>Подзаголовок</span>
-        <input type="text" name="subtitle" defaultValue={category?.subtitle ?? ''} />
-      </label>
+      <TrField
+        label="Подзаголовок"
+        name="subtitle"
+        ru={category?.subtitle}
+        uz={category?.subtitle_uz}
+        en={category?.subtitle_en}
+      />
 
       <label>
         <span>Изображение</span>

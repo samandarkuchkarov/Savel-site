@@ -3,6 +3,7 @@ import { adminAssetUrl, type AdminCategory, type AdminCheckupCollection } from '
 import ConfirmButton from '../ConfirmButton';
 import type { FormState } from '@/lib/formState';
 import AdminForm, { SubmitButton } from '../AdminForm';
+import TrField from '../TrField';
 
 type Props = {
   checkup?: AdminCheckupCollection;
@@ -19,7 +20,7 @@ export default function CheckupForm({ checkup, categories, action, deleteAction,
   const previewUrl = adminAssetUrl(imageUrl);
 
   return (
-    <AdminForm action={action} className="statCard categoryEditForm adminForm">
+    <AdminForm action={action} className="statCard categoryEditForm formWide adminForm">
       {checkup ? <input type="hidden" name="id" value={checkup.id} /> : null}
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
@@ -31,16 +32,15 @@ export default function CheckupForm({ checkup, categories, action, deleteAction,
         )}
       </div>
 
-      <label>
-        <span>Название</span>
-        <input
-          type="text"
-          name="title"
-          defaultValue={checkup?.title ?? ''}
-          placeholder="Например: Близость"
-          required
-        />
-      </label>
+      <TrField
+        label="Название"
+        name="title"
+        ru={checkup?.title}
+        uz={checkup?.title_uz}
+        en={checkup?.title_en}
+        placeholder="Например: Наш ритм"
+        required
+      />
 
       <label>
         <span>Категория</span>

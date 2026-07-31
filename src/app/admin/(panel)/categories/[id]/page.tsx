@@ -10,12 +10,18 @@ import {
   type AdminCollection,
 } from '@/lib/adminApi';
 import { toFormError, type FormState } from '@/lib/formState';
+import { trFields } from '@/lib/trFields';
 import CategoryForm from '../CategoryForm';
+import { matchesText, sliceList } from '@/lib/listSlice';
+import { listHref, parseListQuery, type RawListParams } from '../../listQuery';
+import { ListSearch } from '../../ListToolbar';
+import Pagination from '../../Pagination';
 
 export const dynamic = 'force-dynamic';
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<RawListParams>;
 };
 
 async function saveCategory(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -30,6 +36,7 @@ async function saveCategory(_prev: FormState, formData: FormData): Promise<FormS
       body: JSON.stringify({
         title: String(formData.get('title') ?? '').trim(),
         subtitle: String(formData.get('subtitle') ?? '').trim(),
+        ...trFields(formData, 'title', 'subtitle'),
         imageUrl: uploadedImageUrl ?? currentImageUrl,
         sort: Number(formData.get('sort') ?? 0),
         active: formData.get('active') === 'on',
@@ -76,8 +83,9 @@ async function detachCheckup(formData: FormData) {
   revalidatePath('/admin/checkup');
 }
 
-export default async function EditCategoryPage({ params }: Props) {
+export default async function EditCategoryPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const query = parseListQuery(await searchParams);
   let category: AdminCategory;
   let collections: AdminCollection[];
   let checkups: AdminCheckupCollection[];
@@ -115,6 +123,8 @@ export default async function EditCategoryPage({ params }: Props) {
       href: `/admin/checkup/${c.id}`,
     })),
   ];
+  const basePath = `/admin/categories/${encodeURIComponent(id)}`;
+  const view = sliceList(items, query, (item, needle) => matchesText(needle, item.title));
 
   return (
     <>
@@ -141,6 +151,8 @@ export default async function EditCategoryPage({ params }: Props) {
           .
         </p>
       ) : (
+        <>
+        <ListSearch basePath={basePath} query={query} placeholder="Название" total={view.total} />
         <div className="adminTableWrap">
           <table className="adminTable">
             <thead>
@@ -154,7 +166,7 @@ export default async function EditCategoryPage({ params }: Props) {
               </tr>
             </thead>
             <tbody>
-              {items.map(item => (
+              {view.items.map(item => (
                 <tr key={`${item.kind}-${item.id}`}>
                   <td>
                     {item.image_url ? (
@@ -202,6 +214,14 @@ export default async function EditCategoryPage({ params }: Props) {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={view.page}
+          limit={query.limit}
+          total={view.total}
+          pageHref={page => listHref(basePath, query, { page })}
+          sizeHref={(limit, page) => listHref(basePath, query, { limit, page })}
+        />
+        </>
       )}
     </>
   );

@@ -7,8 +7,10 @@ import {
   type AdminCollectionDetail,
 } from '@/lib/adminApi';
 import { FORM_OK, toFormError, type FormState } from '@/lib/formState';
+import { trFields } from '@/lib/trFields';
 import CollectionForm from '../CollectionForm';
 import ConfirmButton from '../../ConfirmButton';
+import TrField from '../../TrField';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +38,7 @@ async function saveCollection(_prev: FormState, formData: FormData): Promise<For
       method: 'PATCH',
       body: JSON.stringify({
         title: String(formData.get('title') ?? '').trim(),
+        ...trFields(formData, 'title'),
         categoryId: categoryId || null,
         imageUrl: uploadedImageUrl ?? currentImageUrl,
         active: formData.get('active') === 'on',
@@ -65,28 +68,43 @@ async function deleteCollection(formData: FormData) {
   redirect('/admin/collections');
 }
 
+/** Тело вопроса на трёх языках; пустой перевод уходит пустым — API его чистит. */
+function questionBody(formData: FormData) {
+  return {
+    text: String(formData.get('text') ?? '').trim(),
+    variants: parseVariants(formData.get('variants')),
+    ...trFields(formData, 'text'),
+    variantsUz: parseVariants(formData.get('variantsUz')),
+    variantsEn: parseVariants(formData.get('variantsEn')),
+  };
+}
+
 async function addQuestion(formData: FormData) {
   'use server';
   const collectionId = String(formData.get('collectionId'));
-  const text = String(formData.get('text') ?? '').trim();
-  if (!text) return;
+  const body = questionBody(formData);
+  if (!body.text) return;
   await adminApi(`/collections/${collectionId}/questions`, {
     method: 'POST',
-    body: JSON.stringify({ text, variants: parseVariants(formData.get('variants')) }),
+    body: JSON.stringify(body),
   });
   revalidatePath(`/admin/collections/${collectionId}`);
 }
 
-async function saveQuestion(formData: FormData) {
+async function saveQuestion(formData: FormData): Promise<void> {
   'use server';
   const collectionId = String(formData.get('collectionId'));
   const questionId = String(formData.get('questionId'));
-  const text = String(formData.get('text') ?? '').trim();
-  if (!text) return;
-  await adminApi(`/questions/${questionId}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ text, variants: parseVariants(formData.get('variants')) }),
-  });
+  const body = questionBody(formData);
+  if (!body.text) return;
+  try {
+    await adminApi(`/questions/${questionId}`, { method: 'PATCH', body: JSON.stringify(body) });
+  } catch (error) {
+    // Самая частая ошибка здесь — разное число вариантов у языков; молчаливый
+    // провал выглядел бы как «сохранилось», хотя вопрос остался прежним.
+    const message = error instanceof Error ? error.message : 'Не удалось сохранить';
+    redirect(`/admin/collections/${collectionId}?error=` + encodeURIComponent(message));
+  }
   revalidatePath(`/admin/collections/${collectionId}`);
 }
 
@@ -152,24 +170,33 @@ export default async function EditCollectionPage({ params, searchParams }: Props
       />
 
       <h2 className="adminH2">Вопросы ({collection.questions.length})</h2>
+      <p className="adminSub">
+        Русский обязателен — его показывает приложение. Перевод можно оставить пустым; если
+        переводите варианты, строк должно быть столько же, сколько в русском.
+      </p>
 
       {collection.questions.map((question, index) => (
         <div key={question.id} className="statCard questionCard">
           <form action={saveQuestion} className="questionCardMain adminForm">
             <input type="hidden" name="collectionId" value={collection.id} />
             <input type="hidden" name="questionId" value={question.id} />
-            <label>
-              <span>Вопрос {index + 1}</span>
-              <input type="text" name="text" defaultValue={question.text} required />
-            </label>
-            <label>
-              <span>Варианты ответов — каждый с новой строки (пусто = свободный ответ)</span>
-              <textarea
-                name="variants"
-                rows={Math.max(3, question.variants.length + 1)}
-                defaultValue={question.variants.join('\n')}
-              />
-            </label>
+            <TrField
+              label={`Вопрос ${index + 1}`}
+              name="text"
+              ru={question.text}
+              uz={question.text_uz}
+              en={question.text_en}
+              required
+            />
+            <TrField
+              label="Варианты ответов — каждый с новой строки (пусто = свободный ответ)"
+              name="variants"
+              textarea
+              rows={Math.max(4, question.variants.length + 2)}
+              ru={question.variants.join('\n')}
+              uz={question.variants_uz?.join('\n')}
+              en={question.variants_en?.join('\n')}
+            />
             <button className="adminBtn" type="submit">
               Сохранить
             </button>
@@ -213,14 +240,19 @@ export default async function EditCollectionPage({ params, searchParams }: Props
       <form action={addQuestion} className="statCard questionCard adminForm">
         <input type="hidden" name="collectionId" value={collection.id} />
         <div className="questionCardMain">
-          <label>
-            <span>Текст вопроса</span>
-            <input type="text" name="text" placeholder="Например: Как ты любишь отдыхать?" required />
-          </label>
-          <label>
-            <span>Варианты ответов — каждый с новой строки (пусто = свободный ответ)</span>
-            <textarea name="variants" rows={4} placeholder={'Дома вдвоём\nНа природе\nВ путешествии'} />
-          </label>
+          <TrField
+            label="Текст вопроса"
+            name="text"
+            placeholder="Например: Как ты любишь отдыхать?"
+            required
+          />
+          <TrField
+            label="Варианты ответов — каждый с новой строки (пусто = свободный ответ)"
+            name="variants"
+            textarea
+            rows={4}
+            placeholder={'Дома вдвоём\nНа природе\nВ путешествии'}
+          />
         </div>
         <div className="questionCardActions">
           <button className="adminBtn" type="submit">

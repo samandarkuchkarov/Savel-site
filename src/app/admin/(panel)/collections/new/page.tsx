@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { adminApi, adminUploadImage, type AdminCategory, type AdminCollection } from '@/lib/adminApi';
 import CollectionForm from '../CollectionForm';
 import { toFormError, type FormState } from '@/lib/formState';
+import { trFields } from '@/lib/trFields';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,7 @@ async function createCollection(_prev: FormState, formData: FormData): Promise<F
       method: 'POST',
       body: JSON.stringify({
         title: String(formData.get('title') ?? '').trim(),
+        ...trFields(formData, 'title'),
         categoryId: categoryId || null,
         imageUrl: uploadedImageUrl,
         active: formData.get('active') === 'on',

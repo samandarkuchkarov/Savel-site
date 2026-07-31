@@ -7,8 +7,10 @@ import {
   type AdminCheckupCollectionDetail,
 } from '@/lib/adminApi';
 import { FORM_OK, toFormError, type FormState } from '@/lib/formState';
+import { trFields } from '@/lib/trFields';
 import CheckupForm from '../CheckupForm';
 import ConfirmButton from '../../ConfirmButton';
+import TrField from '../../TrField';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +30,7 @@ async function saveCheckup(_prev: FormState, formData: FormData): Promise<FormSt
       method: 'PATCH',
       body: JSON.stringify({
         title: String(formData.get('title') ?? '').trim(),
+        ...trFields(formData, 'title'),
         // Пустой выбор — явный null: он ОТВЯЗЫВАЕТ чек-ап от категории
         // (сервер различает «не прислали» и «прислали null»).
         categoryId: categoryId || null,
@@ -64,7 +67,7 @@ async function addQuestion(formData: FormData) {
   if (!text) return;
   await adminApi(`/checkup-collections/${checkupId}/questions`, {
     method: 'POST',
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, ...trFields(formData, 'text') }),
   });
   revalidatePath(`/admin/checkup/${checkupId}`);
 }
@@ -77,6 +80,7 @@ async function saveQuestion(formData: FormData) {
     method: 'PATCH',
     body: JSON.stringify({
       text: String(formData.get('text') ?? '').trim(),
+      ...trFields(formData, 'text'),
       active: formData.get('active') === 'on',
     }),
   });
@@ -174,7 +178,13 @@ export default async function EditCheckupPage({ params, searchParams }: Props) {
             <form action={saveQuestion} className="checkupForm">
               <input type="hidden" name="checkupId" value={checkup.id} />
               <input type="hidden" name="questionId" value={question.id} />
-              <input type="text" name="text" defaultValue={question.text} required />
+              <TrField
+                name="text"
+                ru={question.text}
+                uz={question.text_uz}
+                en={question.text_en}
+                required
+              />
               <label className="checkupActive">
                 <input type="checkbox" name="active" defaultChecked={question.active} /> Активен
               </label>
@@ -199,12 +209,7 @@ export default async function EditCheckupPage({ params, searchParams }: Props) {
       <h2 className="adminH2">Добавить утверждение</h2>
       <form action={addQuestion} className="checkupItem checkupAdd">
         <input type="hidden" name="checkupId" value={checkup.id} />
-        <input
-          type="text"
-          name="text"
-          placeholder="Например: Мы поддерживаем общие цели"
-          required
-        />
+        <TrField name="text" placeholder="Например: Мы поддерживаем общие цели" required />
         <button className="adminBtn" type="submit">
           Добавить
         </button>

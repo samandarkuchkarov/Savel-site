@@ -1,8 +1,14 @@
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import { adminApi, adminAssetUrl, type AdminCollection } from '@/lib/adminApi';
+import { matchesText, sliceList } from '@/lib/listSlice';
+import { listHref, parseListQuery, type RawListParams } from '../listQuery';
+import { ListSearch } from '../ListToolbar';
+import Pagination from '../Pagination';
 
 export const dynamic = 'force-dynamic';
+
+type Props = { searchParams: Promise<RawListParams> };
 
 /** Swap the collection with its neighbour and renumber sorts 1..n. */
 async function moveCollection(formData: FormData) {
@@ -24,7 +30,8 @@ async function moveCollection(formData: FormData) {
   revalidatePath('/admin/collections');
 }
 
-export default async function AdminCollectionsPage() {
+export default async function AdminCollectionsPage({ searchParams }: Props) {
+  const query = parseListQuery(await searchParams);
   let collections: AdminCollection[] = [];
   let error: string | null = null;
   try {
@@ -32,6 +39,13 @@ export default async function AdminCollectionsPage() {
   } catch (e) {
     error = e instanceof Error ? e.message : 'API недоступен';
   }
+
+  const view = sliceList(collections, query, (c, needle) =>
+    matchesText(needle, c.title, c.title_uz, c.title_en, c.category_title),
+  );
+  // Позиция в ПОЛНОМ списке: стрелки двигают подборку среди всех, а не среди
+  // показанных, — иначе на второй странице «вверх» упиралось бы в её начало.
+  const positions = new Map(collections.map((c, i) => [c.id, i]));
 
   return (
     <>
@@ -54,6 +68,13 @@ export default async function AdminCollectionsPage() {
           <span>{error}</span>
         </div>
       ) : (
+        <>
+        <ListSearch
+          basePath="/admin/collections"
+          query={query}
+          placeholder="Название или категория"
+          total={view.total}
+        />
         <div className="adminTableWrap">
           <table className="adminTable">
             <thead>
@@ -68,7 +89,9 @@ export default async function AdminCollectionsPage() {
               </tr>
             </thead>
             <tbody>
-              {collections.map((collection, index) => (
+              {view.items.map(collection => {
+                const index = positions.get(collection.id) ?? 0;
+                return (
                 <tr key={collection.id}>
                   <td>
                     {collection.image_url ? (
@@ -121,17 +144,28 @@ export default async function AdminCollectionsPage() {
                     </Link>
                   </td>
                 </tr>
-              ))}
-              {collections.length === 0 ? (
+                );
+              })}
+              {view.items.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ color: 'var(--text-soft)' }}>
-                    Пока нет ни одной подборки — создайте первую.
+                    {query.q
+                      ? 'Ничего не найдено — измените запрос.'
+                      : 'Пока нет ни одной подборки — создайте первую.'}
                   </td>
                 </tr>
               ) : null}
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={view.page}
+          limit={query.limit}
+          total={view.total}
+          pageHref={page => listHref('/admin/collections', query, { page })}
+          sizeHref={(limit, page) => listHref('/admin/collections', query, { limit, page })}
+        />
+        </>
       )}
     </>
   );

@@ -387,6 +387,11 @@ export interface AdminCategory {
   id: string;
   title: string;
   subtitle: string;
+  /** Переводы; null — перевода нет, приложение покажет русский. */
+  title_uz: string | null;
+  title_en: string | null;
+  subtitle_uz: string | null;
+  subtitle_en: string | null;
   emoji: string | null;
   image_url: string | null;
   sort: number;
@@ -396,6 +401,8 @@ export interface AdminCategory {
 export interface AdminCheckupQuestion {
   id: string;
   text: string;
+  text_uz: string | null;
+  text_en: string | null;
   sort: number;
   active: boolean;
 }
@@ -427,6 +434,8 @@ export interface AdminCheckupCollection {
   /** Категория в Пульсе; null — чек-ап вне категорий (только для расписания). */
   category_id: string | null;
   title: string;
+  title_uz: string | null;
+  title_en: string | null;
   image_url: string | null;
   sort: number;
   active: boolean;
@@ -443,6 +452,8 @@ export interface AdminCollection {
   id: string;
   category_id: string | null;
   title: string;
+  title_uz: string | null;
+  title_en: string | null;
   image_url: string | null;
   sort: number;
   active: boolean;
@@ -456,6 +467,11 @@ export interface AdminCollectionQuestion {
   id: string;
   text: string;
   variants: string[];
+  text_uz: string | null;
+  text_en: string | null;
+  /** null — вариантов не переводили; длина совпадает с variants, если есть. */
+  variants_uz: string[] | null;
+  variants_en: string[] | null;
   sort: number;
 }
 

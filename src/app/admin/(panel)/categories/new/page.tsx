@@ -2,6 +2,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { adminApi, adminUploadImage } from '@/lib/adminApi';
 import { toFormError, type FormState } from '@/lib/formState';
+import { trFields } from '@/lib/trFields';
 import CategoryForm from '../CategoryForm';
 
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,7 @@ async function createCategory(_prev: FormState, formData: FormData): Promise<For
         id: String(formData.get('id') ?? '').trim(),
         title: String(formData.get('title') ?? '').trim(),
         subtitle: String(formData.get('subtitle') ?? '').trim(),
+        ...trFields(formData, 'title', 'subtitle'),
         imageUrl,
         sort: Number(formData.get('sort') ?? 100),
         active: formData.get('active') === 'on',
