@@ -991,3 +991,31 @@ details:not([open]) > .rowHead .rowToggle::after { content: ' ▾'; }
    Различает их слово, а не оттенок. */
 .pillIos, .pillAndroid { background: var(--tint-neutral); color: var(--text-neutral); }
 .userPlatform { display: flex; align-items: center; gap: 6px; margin-top: -12px; }
+
+/* ── Редактор ссылок эксперта ─────────────────────────────────────────── */
+/* Строка «сеть · адрес · подпись». Адрес тянется, остальное фиксировано:
+   именно его правят чаще всего, и обрезанный URL не прочитать. */
+.expertLinks {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.expertLinks legend {
+  padding: 0 6px;
+  font-weight: 800;
+  font-size: 13px;
+}
+.expertLinksHint { color: var(--text-soft); }
+.expertLinkRow {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) 200px;
+  gap: 8px;
+}
+/* На узком экране колонки складываются: три поля в строку там не помещаются
+   и адрес сжимался бы до нечитаемого. */
+@media (max-width: 720px) {
+  .expertLinkRow { grid-template-columns: minmax(0, 1fr); }
+}

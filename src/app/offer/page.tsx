@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { LegalDocument } from '@/components/LegalDocument';
 import { LEGAL_DOCS } from '@/lib/legal';
-import { html } from '@/lib/legal/privacy';
+import { html } from '@/lib/legal/offer';
 import '../legal.css';
 
-const doc = LEGAL_DOCS.find((d) => d.slug === 'privacy')!;
+const doc = LEGAL_DOCS.find((d) => d.slug === 'offer')!;
 
 export const metadata: Metadata = {
   title: `ISAVEL — ${doc.title}`,
@@ -12,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <LegalDocument slug="privacy" html={html} />;
+  return <LegalDocument slug="offer" html={html} />;
 }

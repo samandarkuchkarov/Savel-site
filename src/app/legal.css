@@ -36,3 +36,38 @@
   font-size: 13.5px !important;
   color: #8a7672 !important;
 }
+
+/* --- Список документов (/legal) и переходы между ними --- */
+.legalCards { display: grid; gap: 12px; margin-top: 8px; }
+.legalCard {
+  display: block;
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  text-decoration: none;
+  box-shadow: 0 14px 30px -24px rgba(230, 90, 114, 0.5);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.legalCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 38px -24px rgba(230, 90, 114, 0.65);
+}
+.legalCardTitle { font-size: 16.5px; font-weight: 900; color: #fd4f61; margin-bottom: 4px; }
+.legalCardText { font-size: 14px; font-weight: 500; color: #5a4a47; line-height: 1.55; }
+.legalCardMeta { font-size: 12.5px; font-weight: 600; color: #a6938e; margin-top: 8px; }
+
+.legalOther { margin-top: 40px; padding-top: 22px; border-top: 1px solid #f0dfd6; }
+.legalOtherTitle { font-size: 13px; font-weight: 800; color: #a6938e; margin-bottom: 12px; }
+.legalOtherLinks { display: flex; flex-wrap: wrap; gap: 8px; }
+.legalChip {
+  display: inline-block;
+  background: #fff;
+  border-radius: 999px;
+  padding: 9px 15px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fd4f61 !important;
+  text-decoration: none;
+  box-shadow: 0 10px 22px -20px rgba(230, 90, 114, 0.6);
+}
+.legalChip:hover { background: #fff4f2; }

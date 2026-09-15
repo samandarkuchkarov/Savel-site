@@ -180,7 +180,7 @@ export default async function AdminUserPage({ params }: Props) {
         </div>
         <div className="profileField">
           <span>Пол</span>
-          <b>{user.gender === 'male' ? 'Мужской' : user.gender === 'female' ? 'Женский' : '—'}</b>
+          <b>{user.gender === 'male' ? 'Мужской' : user.gender === 'female' ? 'Женский' : user.gender === 'other' ? 'Другое' : '—'}</b>
         </div>
         <div className="profileField">
           <span>Дата рождения</span>

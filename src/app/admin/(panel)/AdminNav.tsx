@@ -42,6 +42,7 @@ const GROUPS: NavGroup[] = [
       { href: '/admin/collections', label: 'Вопросы' },
       { href: '/admin/checkup', label: 'Чек-ап' },
       { href: '/admin/boost', label: 'Буст' },
+      { href: '/admin/experts', label: 'Эксперты' },
       { href: '/admin/notifications', label: 'Уведомления' },
     ],
   },

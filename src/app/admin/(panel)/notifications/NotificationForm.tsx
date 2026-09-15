@@ -66,6 +66,19 @@ export default function NotificationForm({ notification, action, submitLabel }: 
       ) : null}
 
       <label>
+        {/*
+          Список короткий и другим быть не может: рассылка уходит ВСЕМ, а
+          свидание, подборка и чек-ап у каждой пары свои — «открыть активность»
+          без конкретного ID означало бы «открыть чью-то чужую».
+        */}
+        <span>Куда ведёт нажатие</span>
+        <select name="actionType" defaultValue={notification?.action_type ?? 'feed'}>
+          <option value="feed">Карточка уведомления</option>
+          <option value="referral">Экран «Пригласить друзей»</option>
+        </select>
+      </label>
+
+      <label>
         <span>Время отправки (Ташкент) · пусто — отправить сейчас</span>
         <input
           type="datetime-local"

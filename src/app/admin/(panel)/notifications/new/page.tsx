@@ -23,6 +23,7 @@ async function createNotification(_prev: FormState, formData: FormData): Promise
         body: String(formData.get('body') ?? '').trim(),
         imageUrl,
         scheduledAt: toScheduledAt(formData.get('scheduledAt')),
+        actionType: String(formData.get('actionType') ?? 'feed'),
       }),
     });
   } catch (error) {

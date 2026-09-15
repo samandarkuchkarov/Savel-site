@@ -53,11 +53,20 @@ export function adminAssetUrl(value: string | null | undefined): string {
   return new URL(value, PUBLIC_API_URL).toString();
 }
 
-export async function adminUploadImage(file: FormDataEntryValue | null): Promise<string | null> {
+export async function adminUploadImage(
+  file: FormDataEntryValue | null,
+  /**
+   * Какая ручка загрузки. Разные сущности ужимают картинку по-разному и кладут
+   * её в свою папку: обложка категории — 512 и /uploads/categories, портрет
+   * эксперта — 640 и /uploads/experts. Дефолт оставлен прежним, чтобы старые
+   * вызовы не пришлось трогать.
+   */
+  endpoint: 'category-image' | 'expert-photo' = 'category-image',
+): Promise<string | null> {
   await assertAdmin();
   if (!(file instanceof File) || file.size === 0) return null;
   const contentType = file.type || 'application/octet-stream';
-  const res = await fetch(`${API_URL}/v1/admin/uploads/category-image`, {
+  const res = await fetch(`${API_URL}/v1/admin/uploads/${endpoint}`, {
     method: 'POST',
     headers: {
       'Content-Type': contentType,
@@ -140,6 +149,8 @@ export interface AdminNotification {
   title: string;
   body: string;
   image_url: string | null;
+  /** Куда ведёт нажатие: карточка уведомления или экран приглашений. */
+  action_type: 'feed' | 'referral';
   scheduled_at: string;
   status: 'scheduled' | 'sending' | 'sent' | 'failed';
   sent_at: string | null;
@@ -250,7 +261,7 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string | null;
-  gender: 'male' | 'female' | null;
+  gender: 'male' | 'female' | 'other' | null;
   pair_code: string;
   /** Ручной admin-флаг (для деталей). Для отображения статуса — effective_plus. */
   savel_plus: boolean;
@@ -355,7 +366,7 @@ export interface AdminUserDetail {
   id: string;
   name: string;
   email: string | null;
-  gender: 'male' | 'female' | null;
+  gender: 'male' | 'female' | 'other' | null;
   birth_date: string | null;
   photo_url: string | null;
   pair_code: string;
@@ -396,6 +407,32 @@ export interface AdminPage<T> {
   page: number;
   limit: number;
   items: T[];
+}
+
+/** Карточка блока «Savel love эксперты» в Пульсе. */
+export interface AdminExpertLink {
+  id: string;
+  kind: string;
+  label: string;
+  url: string;
+  sort: number;
+}
+
+export interface AdminExpert {
+  id: string;
+  name: string;
+  title: string;
+  bio: string;
+  name_uz: string | null;
+  name_en: string | null;
+  title_uz: string | null;
+  title_en: string | null;
+  bio_uz: string | null;
+  bio_en: string | null;
+  photo_url: string | null;
+  sort: number;
+  active: boolean;
+  links: AdminExpertLink[];
 }
 
 export interface AdminCategory {
@@ -524,7 +561,7 @@ export interface AdminCoupleMember {
   id: string;
   name: string;
   email: string | null;
-  gender: 'male' | 'female' | null;
+  gender: 'male' | 'female' | 'other' | null;
   savel_plus: boolean;
 }
 

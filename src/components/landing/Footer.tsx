@@ -74,7 +74,16 @@ export default function Footer() {
               Конфиденциальность
             </a>
             <a className="footerLink" href="/terms" style={linkStyle}>
-              Условия
+              Условия использования
+            </a>
+            <a className="footerLink" href="/offer" style={linkStyle}>
+              Публичная оферта
+            </a>
+            <a className="footerLink" href="/ai" style={linkStyle}>
+              Политика ИИ
+            </a>
+            <a className="footerLink" href="/legal" style={linkStyle}>
+              Все документы
             </a>
           </div>
         </div>

@@ -39,6 +39,7 @@ async function saveNotification(_prev: FormState, formData: FormData): Promise<F
         body: String(formData.get('body') ?? '').trim(),
         imageUrl: uploaded ?? current,
         scheduledAt: toScheduledAt(formData.get('scheduledAt')),
+        actionType: String(formData.get('actionType') ?? 'feed'),
       }),
     });
   } catch (error) {
